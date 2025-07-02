@@ -1,6 +1,6 @@
 // Commands/Utility/kick.js
 
-const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -22,11 +22,11 @@ module.exports = {
 		const member = await interaction.guild.members.fetch(targetUser.id).catch(() => null);
 
 		if (!member) {
-			return interaction.reply({ content: 'My eye sight is getting bad in my old age. Not even Abe could see the shit im seeing. I cant deport this guy.', ephemeral: true });
+			return interaction.reply({ content: 'My eye sight is getting bad in my old age. Not even Abe could see the shit im seeing. I cant deport this guy.', flags: MessageFlags.Ephemeral });
 		}
 
 		if (!member.kickable) {
-			return interaction.reply({ content: 'I, Donald J. Trump, the best, are not able to deport this individual. The courts have ruled in their favor. I am pissed.', ephemeral: true });
+			return interaction.reply({ content: 'I, Donald J. Trump, the best, are not able to deport this individual. The courts have ruled in their favor. I am pissed.', flags: MessageFlags.Ephemeral });
 		}
 
 		try {
@@ -35,7 +35,7 @@ module.exports = {
 		}
 		catch (error) {
 			console.error(error);
-			await interaction.reply({ content: 'something went wrong during the deportation process, the fucking courts are to blame', ephemeral: true });
+			await interaction.reply({ content: 'something went wrong during the deportation process, the fucking courts are to blame', flags: MessageFlags.Ephemeral });
 		}
 	},
 };
