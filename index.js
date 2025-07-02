@@ -4,8 +4,15 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits, MessageFlags } = require('discord.js');
 const { token } = require('./config.json');
+const { jomarResponses } = require('./responses.js');
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({
+	intents: [
+		GatewayIntentBits.Guilds,
+		GatewayIntentBits.GuildMessages,
+		GatewayIntentBits.MessageContent,
+	],
+});
 
 client.commands = new Collection();
 
@@ -63,6 +70,14 @@ client.on(Events.InteractionCreate, async interaction => {
 		else {
 			await interaction.reply({ content: 'There was an error while executing this command!', flags: MessageFlags.Ephemeral });
 		}
+	}
+});
+
+client.on('messageCreate', message => {
+	if (message.author.bot) return;
+
+	if (message.content.toLowerCase().includes('jomar')) {
+		message.channel.send(jomarResponses[Math.floor(Math.random() * jomarResponses.length)]);
 	}
 });
 
