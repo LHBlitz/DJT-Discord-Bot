@@ -29,6 +29,17 @@ for (const folder of commandFolders) {
 
 client.once(Events.ClientReady, readyClient => {
 	console.log(`Ready! Logged in as ${readyClient.user.tag}`);
+
+	const logChannel = client.channels.cache.find(
+		channel => channel.name === 'trump-osc' && channel.isTextBased?.(),
+	);
+
+	if (logChannel) {
+		logChannel.send('Bigger. And. Better. I am the best Discord bot to ever exist.\nThere are no bots with an IQ higher than mines.\nI am so rich and famous, the world knows best. I am the best.');
+	}
+	else {
+		console.log('No log channel found. Skipping startup message.');
+	}
 });
 
 client.on(Events.InteractionCreate, async interaction => {
