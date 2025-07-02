@@ -25,7 +25,16 @@ const jomarResponses = [
 	'Dont fuck with me Jomar',
 ];
 
+const harassment = [
+	'I smell an immigrant in my server...',
+	'Why do you smell like tacos? Are you from America?',
+	'I LOVE YOU JOMAR PLEASE',
+	'Ngh...',
+
+];
+
 module.exports = {
 	wisdomResponses,
 	jomarResponses,
+	harassment,
 };

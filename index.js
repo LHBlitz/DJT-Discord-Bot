@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits, MessageFlags } = require('discord.js');
 const { token } = require('./config.json');
-const { jomarResponses } = require('./responses.js');
+const { jomarResponses, harassment } = require('./responses.js');
 
 const client = new Client({
 	intents: [
@@ -78,6 +78,11 @@ client.on('messageCreate', message => {
 
 	if (message.content.toLowerCase().includes('jomar')) {
 		message.channel.send(jomarResponses[Math.floor(Math.random() * jomarResponses.length)]);
+	}
+
+	// eslint-disable-next-line no-inline-comments
+	if (message.author.id === '827174001049862164') { // this is jomar's user id
+		message.author.send(harassment[Math.floor(Math.random() * harassment.length)]).catch(console.error);
 	}
 });
 
