@@ -37,6 +37,19 @@ for (const folder of commandFolders) {
 client.once(Events.ClientReady, readyClient => {
 	console.log(`Ready! Logged in as ${readyClient.user.tag}`);
 
+	const startTime = Date.now();
+
+	setInterval(() => {
+		const elapsed = Date.now() - startTime;
+		const totalSeconds = Math.floor(elapsed / 1000);
+
+		const h = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+		const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+		const s = String(totalSeconds % 60).padStart(2, '0');
+
+		process.stdout.write(`\rActive for: ${h}:${m}:${s}`);
+	}, 1000);
+
 	const logChannel = client.channels.cache.find(
 		channel => channel.name === 'trump-osc' && channel.isTextBased?.(),
 	);
@@ -82,7 +95,7 @@ client.on('messageCreate', message => {
 
 	// eslint-disable-next-line no-inline-comments
 	if (message.author.id === '827174001049862164') { // this is jomar's user id
-		message.author.send(harassment[Math.floor(Math.random() * harassment.length)]).catch(console.error);
+		message.author.send('<@827174001049862164> ' + harassment[Math.floor(Math.random() * harassment.length)]).catch(console.error);
 	}
 });
 

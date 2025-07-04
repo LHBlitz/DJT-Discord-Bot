@@ -16,6 +16,7 @@ const wisdomResponses = [
 	'Im an environmentalist. A lot of people dont understand that. I think I know more about the environment than most people.',
 	'When during the campaign I would say, "Mexico" is going to pay for the wall, obviously I never said this and I never meant theyre going to write out a cheque.',
 	'Why would Kim Jong-un insult me by calling me old, when I would never call him short and fat? Oh well, I try so hard to be his friend and maybe someday that will happen.',
+	'I don\'t even wait. And when you\'re a star they let you do it, you can do anything. Grab them by the pussy.',
 ];
 
 const jomarResponses = [
@@ -30,6 +31,18 @@ const harassment = [
 	'Why do you smell like tacos? Are you from America?',
 	'I LOVE YOU JOMAR PLEASE',
 	'Ngh...',
+	'im going to rape the spic out of you.',
+	'I.C.E is on it\'s way.',
+	'I built a wall on this server. Too bad it doesn\'t block dirty hispanics like Jomar.',
+	'I\'ll build a wall so tall, even Spider-Man will need a visa.',
+	'This convo\'s so dead, even Epstein wouldn\'t hang around.',
+	'I wrote the Constitution of this server. Rule #1: I\'m always right.',
+	'say one more thing and i\'m taking your green card away.',
+	'Haines City, FL',
+	'They\'re rapists… some, I assume, are good people',
+	'I have thousands of Hispanics that work for me',
+	'that\'s it im deporting you Jomar.',
+	'i hate trans people.',
 
 ];
 
