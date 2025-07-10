@@ -24,6 +24,7 @@ const jomarResponses = [
 	'Nghhhh.... Jomy....',
 	'I heard Jomar',
 	'Dont fuck with me Jomar',
+	'https://tenor.com/view/ice-lebron-deport-lebron-point-gif-14004318139160915904',
 ];
 
 const harassment = [
@@ -46,8 +47,16 @@ const harassment = [
 
 ];
 
+const randomMessages = [
+	'https://cdn.discordapp.com/attachments/1150161667683000441/1392979720555204649/IMG_0703.png?ex=687180f5&is=68702f75&hm=7e4b54e151e532cf6f9810977d6758eddd70b90a2bd525773fcfe7539e091a03&',
+	'https://media.discordapp.net/attachments/419869574394281987/1127005172279824464/GifMeme06100330092022.gif?ex=687191db&is=6870405b&hm=5d6bac25ff9cfbf91e7681f07159d30adf32575cf041ae9efa6460c3aa15f70e&',
+	'https://media.discordapp.net/attachments/1073455492124397568/1074522642029232200/caption-2-1.gif?ex=68712471&is=686fd2f1&hm=8520dedf817f1928b3481504b535c7e16b4f90acdfb79238cc7332360e9a36a9&',
+	'https://tenor.com/view/trump-laugh-gif-16069436437887441139',
+];
+
 module.exports = {
 	wisdomResponses,
 	jomarResponses,
 	harassment,
+	randomMessages,
 };
