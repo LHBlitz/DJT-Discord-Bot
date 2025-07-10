@@ -2,9 +2,11 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { Client, Collection, Events, GatewayIntentBits, MessageFlags } = require('discord.js');
+const { Client, Collection, Events, GatewayIntentBits, MessageFlags, ActivityType } = require('discord.js');
 const { token } = require('./config.json');
-const { jomarResponses, harassment } = require('./responses.js');
+const { jomarResponses, harassment, randomMessages } = require('./responses.js');
+
+global.commandLock = false;
 
 const client = new Client({
 	intents: [
@@ -50,6 +52,28 @@ client.once(Events.ClientReady, readyClient => {
 		process.stdout.write(`\rActive for: ${h}:${m}:${s}`);
 	}, 1000);
 
+	setInterval(() => {
+		if (Math.random() < 0.05) {
+			const randomMessage = randomMessages[Math.floor(Math.random() * randomMessages.length)];
+
+			const targetChannel = client.channels.cache.find(
+				channel => channel.name === 'gooneral-vii' && channel.isTextBased?.(),
+			);
+
+			if (targetChannel) {
+				targetChannel.send(randomMessage).catch(console.error);
+			}
+			else {
+				console.log('No target channel found for random message.');
+			}
+		}
+	}, 5 * 60 * 1000);
+
+	client.user.setActivity('Signing Executive Orders', {
+		// eslint-disable-next-line no-inline-comments
+		type: ActivityType.Playing, // Can also be: Watching, Listening, Competing
+	});
+
 	const logChannel = client.channels.cache.find(
 		channel => channel.name === 'trump-osc' && channel.isTextBased?.(),
 	);
@@ -64,6 +88,14 @@ client.once(Events.ClientReady, readyClient => {
 
 client.on(Events.InteractionCreate, async interaction => {
 	if (!interaction.isChatInputCommand()) return;
+
+
+	if (global.commandLock) {
+		return interaction.reply({
+			content: 'I, Donald J (Jesus) Trump, am too busy running another command.',
+			flags: MessageFlags.Ephemeral,
+		});
+	}
 
 	const command = interaction.client.commands.get(interaction.commandName);
 
