@@ -30,11 +30,17 @@ module.exports = {
 		}
 
 		try {
-			await member.kick(reason);
-			await interaction.reply(`🌮 **${targetUser.tag}** has been DEPORTED!!!!💥🔨\nReason: ${reason}`);
+			await targetUser.send('OFF TO ALLIGATOR ALCATRAZ WITH YOU \n\n\nhttps://discord.gg/MEkXSVUfWr');
 		}
-		catch (error) {
-			console.error(error);
+		catch {
+			console.warn(`could not DM ${targetUser.tag}.`);
+		}
+
+		try {
+			await member.kick(reason);
+			await interaction.reply(`**${targetUser.tag}** has been DEPORTED!!!!💥🔨\nReason: ${reason}`);
+		}
+		catch {
 			await interaction.reply({ content: 'something went wrong during the deportation process, the fucking courts are to blame', flags: MessageFlags.Ephemeral });
 		}
 	},
