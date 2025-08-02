@@ -6,10 +6,10 @@ const { Client, Collection, Events, GatewayIntentBits, MessageFlags, ActivityTyp
 const { token } = require('./config.json');
 const { jomarResponses, harassment, randomMessages, epsteinMessages } = require('./responses.js');
 
-const MINOR_ROLE_ID = '1298143821753745458';
 const ROLE_CACHE = './rolecache.json';
 
-const removedMinorRoleOnce = new Set();
+const MINORS_ROLE_ID = '1298143821753745458';
+const ADULT_ROLE_ID = '1234548930533130413';
 
 const baseChance = 0;
 const maxChance = 1;
@@ -142,7 +142,7 @@ client.on('guildMemberRemove', (member) => {
 	if (roleIds.length > 0) {
 		roleCache[member.id] = {
 			roles: roleIds,
-			hadMinorRole: roleIds.includes('1298143821753745458'),
+			hadMinorRole: roleIds.includes(MINORS_ROLE_ID),
 		};
 		saveRoleCache();
 	}
@@ -150,58 +150,43 @@ client.on('guildMemberRemove', (member) => {
 
 client.on('guildMemberAdd', async (member) => {
 	const saved = roleCache[member.id];
-	if (!saved) return;
+	const hadMinorRole = saved?.hadMinorRole ?? true;
 
-	const { roles: savedRoles, hadMinorRole } = saved;
-
-	delete roleCache[member.id];
-	saveRoleCache();
+	if (saved) {
+		delete roleCache[member.id];
+		saveRoleCache();
+	}
 
 	setTimeout(async () => {
 		try {
-			const rolesToRestore = hadMinorRole
-				? savedRoles
-				: savedRoles.filter(id => id !== '1298143821753745458');
+			const rolesToRestore = saved?.roles?.filter(id => id !== MINORS_ROLE_ID && id !== ADULT_ROLE_ID) || [];
 
 			if (rolesToRestore.length > 0) {
 				await member.roles.add(rolesToRestore);
 				console.log(`\nRestored roles for ${member.user.tag}`);
 			}
 
-			if (!hadMinorRole) {
-				if (member.roles.cache.has('1298143821753745458')) {
-					await member.roles.remove('1298143821753745458');
+			if (hadMinorRole) {
+				if (!member.roles.cache.has(MINORS_ROLE_ID)) {
+					await member.roles.add(MINORS_ROLE_ID);
 				}
-
-				await member.roles.add('1234548930533130413');
+				if (member.roles.cache.has(ADULT_ROLE_ID)) {
+					await member.roles.remove(ADULT_ROLE_ID);
+				}
+			}
+			else {
+				if (!member.roles.cache.has(ADULT_ROLE_ID)) {
+					await member.roles.add(ADULT_ROLE_ID);
+				}
+				if (member.roles.cache.has(MINORS_ROLE_ID)) {
+					await member.roles.remove(MINORS_ROLE_ID);
+				}
 			}
 		}
 		catch (err) {
 			console.error(`Error restoring roles for ${member.user.tag}:`, err);
 		}
 	}, 5000);
-});
-
-client.on('guildMemberUpdate', async (oldMember, newMember) => {
-	const hadMinorRole = oldMember.roles.cache.has(MINOR_ROLE_ID);
-	const hasMinorRoleNow = newMember.roles.cache.has(MINOR_ROLE_ID);
-
-	if (!hadMinorRole && hasMinorRoleNow) {
-		if (removedMinorRoleOnce.has(newMember.id)) return;
-
-		try {
-			const updatedMember = await newMember.guild.members.fetch(newMember.id);
-
-			if (updatedMember.roles.cache.has(MINOR_ROLE_ID)) {
-				await updatedMember.roles.remove(MINOR_ROLE_ID);
-				console.log(`\nRemoved minors role from ${updatedMember.user.tag}`);
-				removedMinorRoleOnce.add(updatedMember.id);
-			}
-		}
-		catch (err) {
-			console.error(`Failed to remove minors role from ${newMember.user.tag}:`, err);
-		}
-	}
 });
 
 
