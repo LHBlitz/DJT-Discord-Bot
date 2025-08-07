@@ -4,3 +4,5 @@ eslint.config.js
 .env
 responses.js
 rolecache.json
+package-lock.json
+package.json
