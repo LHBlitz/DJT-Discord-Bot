@@ -208,16 +208,6 @@ client.on('messageCreate', message => {
 		message.channel.send(epsteinMessages[Math.floor(Math.random() * epsteinMessages.length)]);
 	}
 
-	if (message.content.toLowerCase().includes('nig')) {
-		message.channel.send('https://media.discordapp.net/attachments/1069773581409595482/1075943325842030685/ezgif.com-optimize.gif?ex=6880db8e&is=687f8a0e&hm=74174dae4c52e4a25fa7b56ab498ae96913f2e9f84194c7a423db124e4f190ee&');
-	}
-
-	if (message.content.toLowerCase().includes('sponge')) {
-		if (Math.random() < 0.25) {
-			message.channel.send('https://media.discordapp.net/attachments/1113956422254866482/1117535604071215254/togif-1.gif?ex=688e66a2&is=688d1522&hm=d2e386100c9f53a74fc637bd0dad8911e8c9460d51fd2e958d8b11de6779fb42&');
-		}
-	}
-
 	if (message.content.toLowerCase().includes('fag')) {
 		if (Math.random() < 0.25) {
 			message.channel.send('https://cdn.discordapp.com/attachments/1148765358245806142/1255546535266095105/IMG_2981.jpg?ex=68712ed4&is=686fdd54&hm=03c3da21d686de752828183b2747e1c95cd830e4fd2497e0610c7dd6dd9923d6&');
