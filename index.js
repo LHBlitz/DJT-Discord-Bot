@@ -95,7 +95,7 @@ client.once(Events.ClientReady, readyClient => {
 	);
 
 	if (logChannel) {
-		logChannel.send('We will make America strong again. We will make America safe again. And we will make America great again, greater than ever before.');
+		logChannel.send('We will make Discord strong again. We will make Discord safe again. And we will make Discord great again, greater than ever before.');
 	}
 	else {
 		console.log('No log channel found. Skipping startup message.');
