@@ -95,7 +95,7 @@ client.once(Events.ClientReady, readyClient => {
 	);
 
 	if (logChannel) {
-		logChannel.send('Bigger. And. Better. I am the best Discord bot to ever exist.\nThere are no bots with an IQ higher than mines.\nI am so rich and famous, the world knows best. I am the best.');
+		logChannel.send('We will make Discord strong again. We will make Discord safe again. And we will make Discord great again, greater than ever before.');
 	}
 	else {
 		console.log('No log channel found. Skipping startup message.');
