@@ -1,1 +1,1 @@
-This is a bot made for a private friend based Discord server. Its purpose is to be a tool bot on the likes of MEE6 and Dyno, but with a twist of humour inspired by President Donald J. Trump. It is privately held and ran.
+This is a bot made for a private friend based Discord server. Its purpose is to be a tool bot on the likes of MEE6 and Dyno, but with a twist of humor inspired by President Donald J. Trump. It is privately held and ran.
