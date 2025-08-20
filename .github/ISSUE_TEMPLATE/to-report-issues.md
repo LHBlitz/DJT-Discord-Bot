@@ -7,4 +7,4 @@ assignees: LHBlitz, Crunchcasual
 
 ---
 
-Report issues to Crunchcasual and lhblitz directly instead of here.
+Report issues to zanzort and lhblitz directly instead of here.
