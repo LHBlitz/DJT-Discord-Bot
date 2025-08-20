@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits, MessageFlags, ActivityType } = require('discord.js');
 const { token } = require('./config.json');
-const { jomarResponses, harassment, randomMessages, epsteinMessages } = require('./responses.js');
+const { jomarResponses, harassment, randomMessages, epsteinMessages, statuses } = require('./responses.js');
 
 const ROLE_CACHE = './rolecache.json';
 
@@ -63,6 +63,12 @@ function saveRoleCache() {
 	fs.writeFileSync(ROLE_CACHE, JSON.stringify(roleCache, null, 2));
 }
 
+function setRandomStatus(cli, chance) {
+	if (Math.random() <= chance) {
+		const status = statuses[Math.floor(Math.random() * statuses.length)];
+		cli.user.setActivity(status.name, { type: ActivityType[status.type] });
+	}
+}
 
 client.once(Events.ClientReady, readyClient => {
 	console.log(`Ready! Logged in as ${readyClient.user.tag}`);
@@ -85,10 +91,18 @@ client.once(Events.ClientReady, readyClient => {
 		}
 	}, 0.5 * 60 * 1000);
 
-	client.user.setActivity('Signing Executive Orders', {
-		// eslint-disable-next-line no-inline-comments
-		type: ActivityType.Playing, // Can also be: Watching, Listening, Competing
-	});
+	// initialize first status with a 100% chance
+	// to get a certain status
+	setRandomStatus(client, 1);
+
+	// 25% chance to change status to another random status every 5 minutes
+	setInterval(() => {
+		setRandomStatus(client, 0.25);
+		// if you want to change the interval,
+		// the first number here represents
+		// how many minutes the interval waits
+		// before running again
+	}, 5 * 60 * 1000);
 
 	const logChannel = client.channels.cache.find(
 		channel => channel.name === 'trump-osc' && channel.isTextBased?.(),
