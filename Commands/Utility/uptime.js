@@ -11,6 +11,6 @@ module.exports = {
 		const m = Math.floor((seconds % 3600) / 60);
 		const s = seconds % 60;
 
-		await interaction.reply(`Uptime: ${h}h ${m}m ${s}s`);
+		await interaction.reply(`I've been playing golf for: ${h}h ${m}m ${s}s`);
 	},
 };
