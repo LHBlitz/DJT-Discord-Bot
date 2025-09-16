@@ -64,11 +64,11 @@ function saveRoleCache() {
 }
 
 function setRandomStatus(cli, chance) {
-    if (Math.random() <= chance) {
-        const status = statuses[Math.floor(Math.random() * statuses.length)];
-        cli.user.setActivity(status.name, { type: ActivityType[status.type] });
-        console.log(`status updated to: ${status.name}`);
-    }
+	if (Math.random() <= chance) {
+		const status = statuses[Math.floor(Math.random() * statuses.length)];
+		cli.user.setActivity(status.name, { type: ActivityType[status.type] });
+		console.log(`status updated to: ${status.name}`);
+	}
 }
 
 client.once(Events.ClientReady, readyClient => {
@@ -92,21 +92,21 @@ client.once(Events.ClientReady, readyClient => {
 		}
 	}, 0.5 * 60 * 1000);
 
-// initialize first status with a 100% chance
-    // to get a certain status
-    setRandomStatus(client, 1);
+	// initialize first status with a 100% chance
+	// to get a certain status
+	setRandomStatus(client, 1);
 
-    // 25% chance to change status to another random status every 5 minutes
-    setInterval(() => {
-        setRandomStatus(client, 0.25);
-        // if you want to change the interval,
-        // the first number here represents
-        // how many minutes the interval waits
-        // before running again
-    }, 5 * 60 * 1000);
+	// 25% chance to change status to another random status every 5 minutes
+	setInterval(() => {
+		setRandomStatus(client, 0.25);
+		// if you want to change the interval,
+		// the first number here represents
+		// how many minutes the interval waits
+		// before running again
+	}, 5 * 60 * 1000);
 
 	const logChannel = client.channels.cache.find(
-		channel => channel.name === 'trump-osc' && channel.isTextBased?.(),
+		channel => channel.name === 'gooneral-vii' && channel.isTextBased?.(),
 	);
 
 	if (logChannel) {
@@ -223,15 +223,17 @@ client.on('messageCreate', message => {
 		message.channel.send(epsteinMessages[Math.floor(Math.random() * epsteinMessages.length)]);
 	}
 
-    if (message.content.toLowerCase().includes('man')) {
+	if (message.content.toLowerCase().includes('man')) {
+		if (Math.random() < 0.2) {
 			message.channel.send('https://cdn.discordapp.com/attachments/1372358713360388127/1405733727442833529/image.png?ex=68a7274d&is=68a5d5cd&hm=77e7b699ce01639ac0e82c74ad6414ee0e458256ce933a57abe6fcecf6066e49&');
-        }
-	
+		}
+	}
+
 	if (message.content.toLowerCase().includes('fag')) {
-        if (Math.random() < 0.25) {
-            message.channel.send('https://cdn.discordapp.com/attachments/1148765358245806142/1255546535266095105/IMG_2981.jpg?ex=68712ed4&is=686fdd54&hm=03c3da21d686de752828183b2747e1c95cd830e4fd2497e0610c7dd6dd9923d6&');
-        }
-    }
+		if (Math.random() < 0.25) {
+			message.channel.send('https://cdn.discordapp.com/attachments/1148765358245806142/1255546535266095105/IMG_2981.jpg?ex=68712ed4&is=686fdd54&hm=03c3da21d686de752828183b2747e1c95cd830e4fd2497e0610c7dd6dd9923d6&');
+		}
+	}
 
 	// eslint-disable-next-line no-inline-comments
 	if (message.author.id === '827174001049862164') { // this is jomar's user id
