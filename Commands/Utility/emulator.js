@@ -42,6 +42,7 @@ Wii U - https://cemu.info/
 Switch:
 https://github.com/Ryubing/
 https://github.com/Kenji-NX/
+https://eden-emu.dev/
 
 Sega
 Genesis - https://github.com/ekeeke/Genesis-Plus-GX
