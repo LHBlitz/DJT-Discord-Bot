@@ -10,7 +10,7 @@ module.exports = {
 
         const reply = `
         
-        This list is only for emulators that function on a PC. Usage varies and most support both Windows and Linux. If something isn't listed, I have a list on Github for various other emulators and stuff related to it.
+This list is only for emulators that function on a PC. Usage varies and most support both Windows and Linux. If something isn't listed, I have a list on Github for various other emulators and stuff related to it.
 https://github.com/stars/LHBlitz/lists/emulation-stuff
 
 Before you ask, no there aren't any emulators for PS5 and Xbox one/Series consoles.
