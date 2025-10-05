@@ -150,17 +150,18 @@ client.on(Events.InteractionCreate, async interaction => {
 });
 
 client.on('guildMemberRemove', (member) => {
-	const roleIds = member.roles.cache
-		.filter(role => !role.managed && role.id !== member.guild.id)
-		.map(role => role.id);
+    const roleIds = member.roles.cache
+        .filter(role => !role.managed && role.id !== member.guild.id)
+        .map(role => role.id);
 
-	if (roleIds.length > 0) {
-		roleCache[member.id] = {
-			roles: roleIds,
-			hadMinorRole: roleIds.includes(MINORS_ROLE_ID),
-		};
-		saveRoleCache();
-	}
+    if (roleIds.length > 0) {
+        roleCache[member.id] = {
+            roles: roleIds,
+            hadMinorRole: roleIds.includes(MINORS_ROLE_ID),
+            nickname: member.nickname || null,
+        };
+        saveRoleCache();
+    }
 });
 
 client.on('guildMemberAdd', async (member) => {
@@ -197,6 +198,11 @@ client.on('guildMemberAdd', async (member) => {
 					await member.roles.remove(MINORS_ROLE_ID);
 				}
 			}
+		    if (saved?.nickname) {
+                await member.setNickname(saved.nickname).catch(err => {
+                    console.error(`Couldn't restore nickname for ${member.user.tag}:`, err);
+                });
+            }
 		}
 		catch (err) {
 			console.error(`Error restoring roles for ${member.user.tag}:`, err);
