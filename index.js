@@ -98,9 +98,9 @@ client.once(Events.ClientReady, readyClient => {
     // to get a certain status
     setRandomStatus(client, 4);
 
-    // 25% chance to change status to another random status every 5 minutes
+    // 50% chance to change status to another random status every 5 minutes
     setInterval(() => {
-        setRandomStatus(client, 0.25);
+        setRandomStatus(client, 0.50);
         // if you want to change the interval,
         // the first number here represents
         // how many minutes the interval waits
@@ -232,8 +232,8 @@ client.on('messageCreate', message => {
 	}
 
     if (message.content.toLowerCase().includes('man')) {
-		if (Math.random() < 0.25) 
-			message.channel.send('https://cdn.discordapp.com/attachments/1372358713360388127/1405733727442833529/image.png?ex=68a7274d&is=68a5d5cd&hm=77e7b699ce01639ac0e82c74ad6414ee0e458256ce933a57abe6fcecf6066e49&');
+		if (Math.random() < 0.10) 
+			message.channel.send('https://cdn.discordapp.com/attachments/1372358713360388127/1425176744364609617/p9s1y1krwjtf1.gif?ex=68e6a2c6&is=68e55146&hm=76fac8134dbdfb972aa04d4372a00235edcd858738a769dca723c4a6b843be25&');
         }
 	
     if (message.content.toLowerCase().includes('n word')) {
