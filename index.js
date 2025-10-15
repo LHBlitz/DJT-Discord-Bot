@@ -98,9 +98,9 @@ client.once(Events.ClientReady, readyClient => {
     // to get a certain status
     setRandomStatus(client, 4);
 
-    // 50% chance to change status to another random status every 5 minutes
+    // 100% chance to change status to another random status every 5 minutes
     setInterval(() => {
-        setRandomStatus(client, 0.50);
+        setRandomStatus(client, 1.0);
         // if you want to change the interval,
         // the first number here represents
         // how many minutes the interval waits
