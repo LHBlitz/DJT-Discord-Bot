@@ -11,7 +11,7 @@ module.exports = {
         const reply = `
 
 A multipurpose Discord bot paired with administrative tools and humor.
-https://github.com/Crunchcasual/DJT-Discord-Bot
+https://github.com/DJT-Bot/DJT-Discord-Bot
 
 This is a bot made for a private friend based Discord server. Its purpose is to be a tool bot on the likes of MEE6 and Dyno, but with a twist of humor
 inspired by President Donald J. Trump. It is privately held and ran.
@@ -26,8 +26,6 @@ on Discord to discuss getting involved with the project.
 
 Licensed under the Apache License
 See here - https://github.com/DJT-Bot/About-DJT-Bot
-
-https://github.com/Crunchcasual/DJT-Discord-Bot
 
 Copyright 2025 Zanzort/LHBlitz
         `;
