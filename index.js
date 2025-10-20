@@ -26,7 +26,6 @@ const client = new Client({
 		GatewayIntentBits.GuildMessages,
 		GatewayIntentBits.MessageContent,
         GatewayIntentBits.GuildVoiceStates,
-
 	],
 });
 
@@ -76,6 +75,7 @@ function setRandomStatus(cli, chance) {
 client.once(Events.ClientReady, readyClient => {
 	console.log(`Ready! Logged in as ${readyClient.user.tag}`);
 
+	// --- Random messages interval ---
 	setInterval(() => {
 		if (Math.random() < currentChance) {
 			const randomMessage = randomMessages[Math.floor(Math.random() * randomMessages.length)];
@@ -94,19 +94,13 @@ client.once(Events.ClientReady, readyClient => {
 		}
 	}, 0.5 * 60 * 1000);
 
-// initialize first status with a 100% chance
-    // to get a certain status
-    setRandomStatus(client, 4);
+	// --- Status initialization ---
+	setRandomStatus(client, 4);
+	setInterval(() => {
+		setRandomStatus(client, 1.0);
+	}, 5 * 60 * 1000);
 
-    // 100% chance to change status to another random status every 5 minutes
-    setInterval(() => {
-        setRandomStatus(client, 1.0);
-        // if you want to change the interval,
-        // the first number here represents
-        // how many minutes the interval waits
-        // before running again
-    }, 5 * 60 * 1000);
-
+	// --- Startup log message ---
 	const logChannel = client.channels.cache.find(
 		channel => channel.name === 'trump-osc' && channel.isTextBased?.(),
 	);
@@ -117,11 +111,17 @@ client.once(Events.ClientReady, readyClient => {
 	else {
 		console.log('No log channel found. Skipping startup message.');
 	}
+
+// --- AP Politics RSS Feed Integration ---
+    require('./appolitics')(
+        client,
+        '1382884586790326353', // The Discord channel ID you want to post articles in
+        'https://rss.app/feeds/3Essj64wzoR5XxIy.xml' // RSS feed URL
+    );
 });
 
 client.on(Events.InteractionCreate, async interaction => {
 	if (!interaction.isChatInputCommand()) return;
-
 
 	if (global.commandLock) {
 		return interaction.reply({
