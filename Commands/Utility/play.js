@@ -16,7 +16,7 @@ const queues = new Map();
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('play')
-    .setDescription('Play a song from YouTube or YouTube Music. DO NOT USE FOR NOW')
+    .setDescription('TESTING DEVS ONLY')
     .addStringOption(option =>
       option
         .setName('query')
