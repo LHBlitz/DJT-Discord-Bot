@@ -6,7 +6,7 @@ const { EmbedBuilder } = require('discord.js');
 const parser = new Parser();
 const postedFile = path.join(__dirname, 'postedArticles.json');
 
-// --- Basic Spanish detection (lightweight heuristic) ---
+// --- Spanish detection (lightweight heuristic) ---
 const spanishWords = [
     'el', 'la', 'los', 'las', 'de', 'del', 'y', 'en', 'por', 'para',
     'con', 'una', 'un', 'sobre', 'más', 'como', 'su', 'sus', 'al'
@@ -14,6 +14,17 @@ const spanishWords = [
 function isProbablySpanish(text) {
     const lower = text.toLowerCase();
     return spanishWords.some(word => lower.includes(` ${word} `));
+}
+
+// --- Political keyword detection ---
+const politicalKeywords = [
+    'politic', 'election', 'vote', 'voter', 'democrat', 'republican',
+    'congress', 'senate', 'house', 'biden', 'trump', 'government',
+    'campaign', 'policy', 'white house', 'supreme court'
+];
+function isPolitical(text) {
+    const lower = text.toLowerCase();
+    return politicalKeywords.some(keyword => lower.includes(keyword));
 }
 
 module.exports = (client, channelId, feedUrl) => {
@@ -28,38 +39,48 @@ module.exports = (client, channelId, feedUrl) => {
         }
     }
 
-    async function checkFeed() {
+    async function checkFeed(force = false) {
         try {
             const feed = await parser.parseURL(feedUrl);
             const channel = await client.channels.fetch(channelId);
             if (!channel) return console.log('AP Politics channel not found.');
 
-            // Filter out already-posted articles
+            console.log(`\n🔍 Checking feed (${feed.items.length} total items)...`);
+
             const newArticles = feed.items.filter(item => !postedArticles.includes(item.link));
 
-            // Keep only political & English articles
-            const filteredArticles = newArticles.filter(item => {
-                const title = item.title?.toLowerCase() || '';
-                const category = (item.categories || []).join(' ').toLowerCase();
-                const link = item.link?.toLowerCase() || '';
-                const isPolitical =
-                    title.includes('politic') ||
-                    category.includes('politic') ||
-                    link.includes('politic');
-                const notSpanish = !isProbablySpanish(title);
-                return isPolitical && notSpanish;
-            });
+            let relevant = [];
+            let skippedSpanish = 0;
+            let skippedNonPolitical = 0;
 
-            if (filteredArticles.length > 0) {
-                console.log(`Found ${filteredArticles.length} new political articles.`);
+            for (const item of newArticles) {
+                const title = item.title || '';
+                const description = item.contentSnippet || '';
+                const categories = (item.categories || []).join(' ');
 
-                for (const item of filteredArticles) {
-                    // Shorten summary safely
+                if (isProbablySpanish(title) || isProbablySpanish(description)) {
+                    skippedSpanish++;
+                    continue;
+                }
+
+                if (!isPolitical(title) && !isPolitical(description) && !isPolitical(categories)) {
+                    skippedNonPolitical++;
+                    continue;
+                }
+
+                relevant.push(item);
+            }
+
+            if (relevant.length > 0 || force) {
+                console.log(`✅ Found ${relevant.length} new relevant political articles.`);
+                if (skippedSpanish > 0) console.log(`⚠️ Skipped ${skippedSpanish} Spanish articles.`);
+                if (skippedNonPolitical > 0) console.log(`📰 Skipped ${skippedNonPolitical} non-political articles.`);
+
+                for (const item of relevant) {
                     const summary = item.contentSnippet
                         ? item.contentSnippet.substring(0, 500) + (item.contentSnippet.length > 500 ? '...' : '')
                         : 'No summary available.';
 
-                    // Attempt to extract image URL
                     let imageUrl = null;
                     if (item.enclosure?.url) {
                         imageUrl = item.enclosure.url;
@@ -81,18 +102,15 @@ module.exports = (client, channelId, feedUrl) => {
                                 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Associated_Press_logo_2012.svg/512px-Associated_Press_logo_2012.svg.png',
                         });
 
-                    if (imageUrl) {
-                        embed.setImage(imageUrl);
-                    }
+                    if (imageUrl) embed.setImage(imageUrl);
 
                     await channel.send({ embeds: [embed] }).catch(console.error);
                     postedArticles.push(item.link);
                 }
 
-                // Keep the file clean (last 200 articles)
                 fs.writeFileSync(postedFile, JSON.stringify(postedArticles.slice(-200), null, 2));
             } else {
-                console.log('No new relevant political articles found.');
+                console.log(`No new relevant political articles found. (Skipped ${skippedSpanish + skippedNonPolitical})`);
             }
         } catch (err) {
             console.error('Error checking RSS feed:', err);
@@ -104,4 +122,14 @@ module.exports = (client, channelId, feedUrl) => {
 
     // Recheck every 10 minutes
     setInterval(checkFeed, 10 * 60 * 1000);
+
+    // Allow manual trigger for testing
+    client.on('messageCreate', msg => {
+        if (msg.content.toLowerCase() === '!checkfeed') {
+            if (msg.channel.id === channelId) {
+                msg.reply('🔄 Checking AP feed manually...');
+                checkFeed(true);
+            }
+        }
+    });
 };
