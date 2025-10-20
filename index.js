@@ -5,6 +5,7 @@ const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits, MessageFlags, ActivityType } = require('discord.js');
 const { token } = require('./config.json');
 const { jomarResponses, harassment, randomMessages, epsteinMessages, statuses } = require('./responses.js');
+const { EmbedBuilder } = require('discord.js');
 
 const ROLE_CACHE = './rolecache.json';
 
@@ -251,6 +252,22 @@ client.on('messageCreate', message => {
 	if (message.author.id === '827174001049862164') { // this is jomar's user id
 		message.author.send('<@827174001049862164> ' + harassment[Math.floor(Math.random() * harassment.length)]).catch(console.error);
 	}
+
+	// Auto-respond to "trump commands"
+	if (message.content.toLowerCase().includes('trump commands')) {
+    const commandList = Array.from(client.commands.keys())
+        .map(name => `• /${name}`)
+        .join('\n');
+
+    const embed = new EmbedBuilder()
+        .setColor('Red')
+        .setTitle('DJT Bot Command List')
+        .setDescription(commandList || 'No commands registered.')
+        .setFooter({ text: 'See Apps and Commands list for more details.' });
+
+    message.channel.send({ embeds: [embed] })
+        .catch(console.error);
+    }
 
 });
 
