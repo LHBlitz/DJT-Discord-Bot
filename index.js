@@ -120,6 +120,9 @@ client.once(Events.ClientReady, readyClient => {
     	'1374873902437761086'      // <-- channel ID
 );
 
+	require('./levelsystem')(client);
+
+
 
 // --- AP Politics RSS Feed Integration ---
     require('./appolitics')(
