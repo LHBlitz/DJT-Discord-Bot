@@ -113,6 +113,14 @@ client.once(Events.ClientReady, readyClient => {
 		console.log('No log channel found. Skipping startup message.');
 	}
 
+// --- Error Watchdog ---
+	require('./errorping')(
+    	client,
+    	'692221013995552838',       // <-- Discord user ID
+    	'1374873902437761086'      // <-- channel ID
+);
+
+
 // --- AP Politics RSS Feed Integration ---
     require('./appolitics')(
         client,
