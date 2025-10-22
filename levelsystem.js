@@ -17,8 +17,17 @@ GlobalFonts.registerFromPath(
 );
 
 function getXPNeeded(level) {
-  return Math.floor(100 * Math.pow(1.25, level));
+  // Use at least level 1 when computing the XP required for the *next* level
+  const safeLevel = Math.max(level, 1);
+  return Math.floor(100 * Math.pow(1.25, safeLevel));
 }
+
+// ⚡ Configure boosted users here
+const BOOSTED_USERS = [
+  'YOUR_DISCORD_USER_ID_HERE',   // you
+  'ADMIN_DISCORD_USER_ID_HERE'   // admin
+];
+const XP_MULTIPLIER = 500; // super boost
 
 module.exports = (client) => {
   client.on('messageCreate', async (message) => {
@@ -30,14 +39,9 @@ module.exports = (client) => {
     // Base XP gain
     let xpGain = Math.floor(Math.random() * 15) + 5;
 
-    // ⚡ Super Boost XP for two
-    const BOOSTED_USERS = [
-      'PUT_USER_ID', // your ID
-      'PUT_USER_ID' // other ID
-    ];
-
-    if (BOOSTED_USERS.includes(message.author.id)) {
-      xpGain *= 900; // SUPER BOOST MODE (adjust if too crazy)
+    // Apply super XP boost if user is in the boosted list
+    if (BOOSTED_USERS.includes(userId)) {
+      xpGain *= XP_MULTIPLIER;
     }
 
     levels[userId].xp += xpGain;
