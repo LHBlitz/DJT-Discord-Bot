@@ -8,40 +8,29 @@ const filePath = path.join(dataPath, 'levels.json');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('setlevel')
-    .setDescription('Set a user’s level (admin only, keeps XP)')
-    .addUserOption(option =>
-      option.setName('user')
-        .setDescription('The user to modify')
-        .setRequired(true))
-    .addIntegerOption(option =>
-      option.setName('level')
-        .setDescription('The level to set')
-        .setRequired(true))
-    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator), // only admins can use
+    .setDescription('Set a user’s level (admin only) — accepts negative levels, keeps XP')
+    .addUserOption(opt => opt.setName('user').setDescription('The user').setRequired(true))
+    .addIntegerOption(opt => opt.setName('level').setDescription('The level to set (can be negative)').setRequired(true))
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
   async execute(interaction) {
     const target = interaction.options.getUser('user');
     const newLevel = interaction.options.getInteger('level');
 
-    if (newLevel < 1) return interaction.reply({ content: '❌ Level must be at least 1.', ephemeral: true });
-
-    // Load levels.json safely
+    // Load levels file safely
     let levels = {};
     try {
-      if (fs.existsSync(filePath)) {
-        levels = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-      }
+      if (fs.existsSync(filePath)) levels = JSON.parse(fs.readFileSync(filePath, 'utf8'));
     } catch (err) {
       console.error('Error reading levels.json:', err);
       return interaction.reply({ content: '❌ Failed to read levels file.', ephemeral: true });
     }
 
-    if (!levels[target.id]) levels[target.id] = { xp: 0, level: 1 };
+    if (!levels[target.id]) levels[target.id] = { xp: 0, level: 0 };
 
-    // Set new level but keep XP
+    // Set new level (can be negative)
     levels[target.id].level = newLevel;
 
-    // Save back to file
     try {
       fs.writeFileSync(filePath, JSON.stringify(levels, null, 2));
     } catch (err) {
@@ -49,6 +38,9 @@ module.exports = {
       return interaction.reply({ content: '❌ Failed to write levels file.', ephemeral: true });
     }
 
-    return interaction.reply({ content: `✅ Set ${target.tag}'s level to ${newLevel}, XP unchanged.`, ephemeral: false });
+    // Optional: log the change to console for audit
+    console.log(`ADMIN SETLEVEL: ${interaction.user.tag} set ${target.tag} (${target.id}) to level ${newLevel}`);
+
+    return interaction.reply({ content: `✅ Set ${target.tag}'s level to ${newLevel} (XP unchanged).`, ephemeral: true });
   },
 };
