@@ -1,0 +1,3 @@
+This was made just so I could upload the folder to GitHub. After cloning the repo, delete this.
+
+Now fuck off
