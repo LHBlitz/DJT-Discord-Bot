@@ -5,12 +5,12 @@ const path = require('path');
 const postedArticlesFile = path.join(__dirname, '../../postedArticles.json');
 const roleCacheFile = path.join(__dirname, '../../rolecache.json');
 
-const FEED_CHANNEL_ID = '1374873902437761086';
+const FEED_CHANNEL_ID = 'PUT_ID_HERE';
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('status')
-        .setDescription('Check the status of the bot and it\'s key features.'),
+        .setDescription('Check the status of the bot.'),
     async execute(interaction) {
         // ----- Uptime -----
         const uptimeSeconds = process.uptime();
@@ -54,18 +54,18 @@ module.exports = {
         const feedChannelHealthy = !!feedChannel;
 
         // ----- Overall Health -----
-        let healthStatus = '✅ Excellent';
+        let healthStatus = 'Excellent';
         const issues = [];
         if (!roleCacheHealthy) issues.push('Role Cache');
         if (!feedHealthy) issues.push('Feed');
         if (!feedChannelHealthy) issues.push('Feed Channel');
 
-        if (issues.length === 1) healthStatus = '⚠️ Minor Issues';
-        else if (issues.length > 1) healthStatus = '❌ Major Issues';
+        if (issues.length === 1) healthStatus = 'Minor Issues';
+        else if (issues.length > 1) healthStatus = 'Major Issues';
 
         // ----- Embed -----
         const embed = new EmbedBuilder()
-            .setTitle('🛠 Trump Bot Status')
+            .setTitle('Donalds Health')
             .setColor(0xffcc00)
             .setDescription(`**Health:** ${healthStatus}${issues.length > 0 ? `\nIssues: ${issues.join(', ')}` : ''}`)
             .addFields(
@@ -73,7 +73,7 @@ module.exports = {
                 { name: 'Role Cache Entries', value: roleCacheCount >= 0 ? roleCacheCount.toString() : 'Error', inline: true },
                 { name: 'Articles Stored', value: lastArticlesCount >= 0 ? lastArticlesCount.toString() : 'Error', inline: true },
                 { name: 'Last Feed Check', value: lastFeedCheck, inline: true },
-                { name: 'Feed Channel Exists', value: feedChannelHealthy ? '✅ Yes' : '❌ No', inline: true },
+                { name: 'Feed Channel Exists', value: feedChannelHealthy ? 'Yes' : 'No', inline: true },
                 { name: 'Commands Loaded', value: interaction.client.commands.size.toString(), inline: true }
             )
             .setFooter({ text: 'Trump Bot Status', iconURL: interaction.client.user.displayAvatarURL() })
