@@ -7,7 +7,7 @@
   },
   "keywords": [],
   "author": "Zanzort/LHBlitz",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "description": "",
   "dependencies": {
     "@discordjs/opus": "^0.10.0",
