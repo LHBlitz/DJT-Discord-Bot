@@ -1,4 +1,4 @@
-![Static Badge](https://img.shields.io/badge/DJT-Running-red)
+![Static Badge](https://img.shields.io/badge/DJT-Running-red) ![Static Badge](https://img.shields.io/badge/Code-JS-yellow) ![Static Badge](https://img.shields.io/badge/Fuck-MEE6-blue)
 
 This is a bot made for a private friend based Discord server. Its purpose is to be a tool bot on the likes of MEE6 and Dyno, but with a twist of humor inspired by President Donald J. Trump. It is privately held and ran.
 
