@@ -277,4 +277,152 @@ client.on('messageCreate', message => {
 	}
 });
 
+client.on("messageCreate", async (message) => {
+  if (message.author.bot) return;
+
+  const QUEST_CHANNEL_ID = "1435714003233013933";
+  const QUEST_ROLE_ID = "1435730932890992783";
+  const EXEMPT_ROLE_IDS = [
+    "1386905529724698644",
+    "1342306768524410931",
+  ];
+
+  const LOG_CHANNEL_ID = "1372343483842691093";
+
+  if (message.channel.id !== QUEST_CHANNEL_ID) return;
+
+  if (message.webhookId) {
+    await message.channel.send(`<@&${QUEST_ROLE_ID}>`);
+    console.log(`[Quest Ping] Sent ping for integration message in #${message.channel.name}.`);
+
+    if (LOG_CHANNEL_ID) {
+      const logChannel = await message.guild.channels.fetch(LOG_CHANNEL_ID);
+      if (logChannel) {
+        await logChannel.send(`Quest ping sent in <#${QUEST_CHANNEL_ID}>`);
+      }
+    }
+
+    return;
+  }
+
+  const member = await message.guild.members.fetch(message.author.id);
+  const hasExemptRole = EXEMPT_ROLE_IDS.some(roleId => member.roles.cache.has(roleId));
+
+  if (hasExemptRole) {
+    console.log(`[Quest Ping] Skipped exempt user "${message.author.tag}" (${message.author.id}).`);
+    if (LOG_CHANNEL_ID) {
+      const logChannel = await message.guild.channels.fetch(LOG_CHANNEL_ID);
+      if (logChannel) {
+        await logChannel.send(`Skipped exempt user **${message.author.tag}** in <#${QUEST_CHANNEL_ID}>`);
+      }
+    }
+    return;
+  }
+
+  console.log(`[Quest Ping] Ignored regular user message by ${message.author.tag}.`);
+});
+
+const os = require("os");
+const process = require("process");
+
 client.login(token);
+
+let shutdownReason = "Unknown";
+
+process.on("SIGINT", () => {
+    shutdownReason = "Manual Shutdown (SIGINT)";
+    gracefulShutdown();
+});
+
+process.on("SIGTERM", () => {
+    shutdownReason = "System Termination (SIGTERM)";
+    gracefulShutdown();
+});
+
+process.on("uncaughtException", (err) => {
+    console.error("Uncaught Exception:", err);
+    shutdownReason = "Crash (Uncaught Exception)";
+    gracefulShutdown();
+});
+
+process.on("unhandledRejection", (reason) => {
+    console.error("Unhandled Promise Rejection:", reason);
+    shutdownReason = "Crash (Unhandled Rejection)";
+    gracefulShutdown();
+});
+
+async function gracefulShutdown() {
+    try {
+        const now = new Date();
+
+        const shutdownTimeEastern = new Intl.DateTimeFormat("en-US", {
+            timeZone: "America/New_York",
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+            hour: "numeric",
+            minute: "numeric",
+            second: "numeric",
+            hour12: true,
+            timeZoneName: "short"
+        }).format(now);
+
+        const totalSeconds = Math.floor(process.uptime());
+        const h = Math.floor(totalSeconds / 3600);
+        const m = Math.floor((totalSeconds % 3600) / 60);
+        const s = totalSeconds % 60;
+        const uptimeString = `${h}h ${m}m ${s}s`;
+
+        const totalMem = os.totalmem();
+        const freeMem = os.freemem();
+        const usedMem = totalMem - freeMem;
+
+        const memPercent = ((usedMem / totalMem) * 100).toFixed(1);
+        const usedMB = (usedMem / 1024 / 1024).toFixed(0);
+        const totalMB = (totalMem / 1024 / 1024).toFixed(0);
+
+        const cpuLoad = os.loadavg()[0];
+        const cpuCount = os.cpus().length;
+        const cpuPercent = ((cpuLoad / cpuCount) * 100).toFixed(1);
+
+        const roleCacheCount = client.guilds.cache.reduce(
+            (acc, guild) => acc + guild.roles.cache.size,
+            0
+        );
+
+        const commandCount = client.commands?.size || 0;
+
+        let embedColor = 0xff0000;
+        if (cpuPercent > 85 || memPercent > 85) embedColor = 0xff0000;
+
+        const embed = new EmbedBuilder()
+            .setColor(embedColor)
+            .setTitle("Donald's Health (Shut Down)")
+            .addFields(
+                { name: "Shutdown Time (ET)", value: shutdownTimeEastern },
+                { name: "Shutdown Reason", value: shutdownReason },
+                { 
+                    name: "Status Summary", 
+                    value: 
+                        `Uptime: ${uptimeString}\n` +
+                        `CPU Usage: ${cpuPercent}%\n` +
+                        `Memory Usage: ${usedMB}MB / ${totalMB}MB (${memPercent}%)\n` +
+                        `Role Cache Entries: ${roleCacheCount}\n` +
+                        `Commands Loaded: ${commandCount}`
+                }
+            )
+            .setFooter({ text: "Donald has died." })
+            .setTimestamp();
+
+        const channel = client.channels.cache.get("CHANNEL_ID_HERE");
+        if (channel) await channel.send({ embeds: [embed] });
+
+        console.log("Shutdown embed sent.");
+
+    } catch (err) {
+        console.error("Error during shutdown:", err);
+    }
+
+    process.exit(0);
+}
