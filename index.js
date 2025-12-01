@@ -1,11 +1,11 @@
-// index.js
-
 const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits, MessageFlags, ActivityType, EmbedBuilder } = require('discord.js');
 const { token } = require('./config.json');
 const { jomarResponses, harassment, randomMessages, epsteinMessages, statuses } = require('./responses.js');
 const AdminCore = require('./admincore');
+
+const NITTER_INSTANCE = "https://xcancel.com";
 
 const ROLE_CACHE = './rolecache.json';
 
@@ -77,13 +77,11 @@ client.once(Events.ClientReady, readyClient => {
 	console.log(`Ready! Logged in as ${readyClient.user.tag}`);
 	AdminCore.logEvent('BOT_START', `${readyClient.user.tag} is online`);
 
-	// === Automatic JSON Backups ===
 	const xpPath = path.join(__dirname, 'data', 'xp.json');
 	const levelsPath = path.join(__dirname, 'data', 'levels.json');
 	AdminCore.startAutoBackup(xpPath, 60); // every 60 min
 	AdminCore.startAutoBackup(levelsPath, 60);
 
-	// --- Random messages interval ---
 	setInterval(() => {
 		if (Math.random() < currentChance) {
 			const randomMessage = randomMessages[Math.floor(Math.random() * randomMessages.length)];
@@ -102,13 +100,11 @@ client.once(Events.ClientReady, readyClient => {
 		}
 	}, 0.5 * 60 * 1000);
 
-	// --- Status initialization ---
 	setRandomStatus(client, 4);
 	setInterval(() => {
 		setRandomStatus(client, 1.0);
 	}, 5 * 60 * 1000);
 
-	// --- Startup log message ---
 	const logChannel = client.channels.cache.find(
 		channel => channel.name === 'trump-osc' && channel.isTextBased?.(),
 	);
@@ -120,22 +116,22 @@ client.once(Events.ClientReady, readyClient => {
 		console.log('No log channel found. Skipping startup message.');
 	}
 
-	// --- Error Watchdog ---
 	require('./errorping')(
     	client,
-    	'692221013995552838',       // <-- Discord user ID
-    	'1374873902437761086'       // <-- channel ID
+    	'692221013995552838',
+    	'1374873902437761086'
 	);
 
-	// --- Level System ---
 	require('./levelsystem')(client);
 
-	// --- AP Politics RSS Feed Integration ---
     require('./appolitics')(
-        client,
-        '1382884586790326353', // The Discord channel ID you want to post articles in
-        'https://rss.app/feeds/3Essj64wzoR5XxIy.xml' // RSS feed URL
-    );
+    client,
+    '1382884586790326353',
+    [
+        'https://www.pbs.org/newshour/feeds/rss/politics',
+        'https://feeds.npr.org/1014/rss.xml',
+    ]
+);
 
 	AdminCore.sendAlert(client, 'Bot Online', `${readyClient.user.tag} is now active and monitoring the server.`);
 });
@@ -415,7 +411,7 @@ async function gracefulShutdown() {
             .setFooter({ text: "Donald has died." })
             .setTimestamp();
 
-        const channel = client.channels.cache.get("CHANNEL_ID_HERE");
+        const channel = client.channels.cache.get("1374873902437761086");
         if (channel) await channel.send({ embeds: [embed] });
 
         console.log("Shutdown embed sent.");
