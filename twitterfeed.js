@@ -1,97 +1,107 @@
 require('dotenv').config();
-const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
-const Parser = require('rss-parser');
+const fs = require('fs');
+const path = require('path');
+const { TwitterApi } = require('twitter-api-v2');
 
-const client = new Client({
-    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages],
-});
+const clientV2 = new TwitterApi(process.env.TWITTER_BEARER_TOKEN).v2;
+const DATA_DIR = path.join(__dirname, 'lastTweets');
 
-const parser = new Parser();
+if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR);
 
 const ACCOUNTS = [
-    {
-        username: 'DecisionDeskHQ',
-        channelId: '1382884586790326353',
-        nitterInstance: 'https://xcancel.com/',
-        displayName: 'DecisionDeskHQ',
-    },
-    {
-        username: 'Acyn',
-        channelId: '1382884586790326353',
-        nitterInstance: 'https://xcancel.com/',
-        displayName: 'Acyn',
-    },
+    { username: "DecisionDeskHQ", channelId: "1382884586790326353" },
+    { username: "WumpusCentral", channelId: "1347316973943394315" },
 ];
 
-const botStartTime = new Date();
+function fileFor(username) {
+    return path.join(DATA_DIR, `${username}.json`);
+}
 
-async function fetchTweets(username, nitterInstance) {
+function getLastTweetId(username) {
+    const f = fileFor(username);
+    if (!fs.existsSync(f)) return null;
     try {
-        const feedUrl = `${nitterInstance.replace(/\/$/, '')}/${username}/rss`;
-        const feed = await parser.parseURL(feedUrl);
-        return feed.items || [];
-    } catch (err) {
-        console.error(`[TwitterFeed] RSS error for ${username}:`, err.message);
-        return [];
+        return JSON.parse(fs.readFileSync(f, 'utf8')).id;
+    } catch {
+        return null;
     }
 }
 
-function isOriginalTweet(tweet) {
-    const title = tweet.title || '';
-    const description = tweet.contentSnippet || '';
-
-    if (title.startsWith('RT ')) return false;
-
-    if (/^@\w+/.test(title) || /^@\w+/.test(description)) return false;
-
-    return true;
+function saveLastTweetId(username, id) {
+    fs.writeFileSync(fileFor(username), JSON.stringify({ id }));
 }
 
-async function processAccount(account) {
-    const { username, channelId, nitterInstance, displayName } = account;
-    const tweets = await fetchTweets(username, nitterInstance);
-    if (!tweets.length) return;
-
-    tweets.sort((a, b) => new Date(a.pubDate) - new Date(b.pubDate));
-
-    for (const tweet of tweets) {
-        const tweetDate = new Date(tweet.pubDate || tweet.isoDate || 0);
-        if (tweetDate < botStartTime) continue;
-        if (!isOriginalTweet(tweet)) continue;
-
-        const tweetIdMatch = tweet.link.match(/status\/(\d+)/);
-        if (!tweetIdMatch) continue;
-        const tweetId = tweetIdMatch[1];
-        const fxLink = `https://fxtwitter.com/${username}/status/${tweetId}`;
-
+async function safeApiCall(callFn, username) {
+    while (true) {
         try {
-            const channel = await client.channels.fetch(channelId);
-            if (!channel) continue;
-
-            const embed = new EmbedBuilder()
-                .setColor(0x1da1f2)
-                .setAuthor({ name: displayName, url: `https://twitter.com/${username}` })
-                .setDescription(fxLink)
-                .setTimestamp(tweetDate);
-
-            await channel.send({ embeds: [embed] });
-            console.log(`[TwitterFeed] Posted tweet from @${username}: ${fxLink}`);
+            return await callFn();
         } catch (err) {
-            console.error(`[TwitterFeed] Failed to post tweet from @${username}:`, err.message);
+            if (err.code === 429) {
+                const reset = err.rateLimit?.reset;
+                const now = Math.floor(Date.now() / 1000);
+                const waitMs = Math.max((reset - now) * 1000, 5000);
+                console.log(`[TwitterFeed] Rate limit hit. Waiting ${Math.round(waitMs / 1000)}s (reset @ ${reset})`);
+                await new Promise(res => setTimeout(res, waitMs));
+                continue;
+            }
+            console.error(`[TwitterFeed] Error fetching @${username}:`, err);
+            return null;
         }
     }
 }
 
-async function checkAllAccounts() {
-    for (const account of ACCOUNTS) {
-        await processAccount(account);
+async function fetchLatestTweet(username) {
+    const user = await safeApiCall(
+        () => clientV2.userByUsername(username, { "user.fields": ["id"] }),
+        username
+    );
+    if (!user?.data) return null;
+
+    const tweets = await safeApiCall(
+        () => clientV2.userTimeline(user.data.id, { max_results: 5, exclude: "replies" }),
+        username
+    );
+
+    return tweets?.data?.data?.[0] || null;
+}
+
+async function processAccount(discordClient, { username, channelId }) {
+    const latestTweet = await fetchLatestTweet(username);
+    if (!latestTweet) return;
+
+    const lastId = getLastTweetId(username);
+    if (lastId === latestTweet.id) {
+        console.log(`[TwitterFeed] No new tweet for @${username}`);
+        return;
+    }
+
+    const fx = `https://fxtwitter.com/${username}/status/${latestTweet.id}`;
+
+    try {
+        const ch = await discordClient.channels.fetch(channelId);
+        await ch.send(fx);
+        saveLastTweetId(username, latestTweet.id);
+        console.log(`[TwitterFeed] New tweet from @${username}: ${fx}`);
+    } catch (e) {
+        console.error(`[TwitterFeed] Failed to post tweet for @${username}`, e);
     }
 }
 
-client.once('ready', async () => {
-    console.log(`[TwitterFeed] Logged in as ${client.user.tag}`);
-    await checkAllAccounts();
-    setInterval(checkAllAccounts, 30 * 1000);
-});
+async function queueLoop(discordClient) {
+    console.log("[TwitterFeed] Queue started (rate-limit safe)");
 
-client.login(process.env.DISCORD_TOKEN);
+    while (true) {
+        for (const account of ACCOUNTS) {
+            await processAccount(discordClient, account);
+            await new Promise(res => setTimeout(res, 2000));
+        }
+
+        console.log("[TwitterFeed] Cycle complete. Waiting 5 minutes...");
+        await new Promise(res => setTimeout(res, 5 * 60 * 1000));
+    }
+}
+
+module.exports = (discordClient) => {
+    console.log("[TwitterFeed] Twitter module initialized");
+    queueLoop(discordClient);
+};
