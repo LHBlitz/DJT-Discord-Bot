@@ -79,7 +79,7 @@ client.once(Events.ClientReady, readyClient => {
 
 	const xpPath = path.join(__dirname, 'data', 'xp.json');
 	const levelsPath = path.join(__dirname, 'data', 'levels.json');
-	AdminCore.startAutoBackup(xpPath, 60); // every 60 min
+	AdminCore.startAutoBackup(xpPath, 60);
 	AdminCore.startAutoBackup(levelsPath, 60);
 
 	setInterval(() => {
@@ -243,6 +243,16 @@ client.on('messageCreate', message => {
     if (message.content.toLowerCase().includes('man')) {
 		if (Math.random() < 0.10) 
 			message.channel.send('https://cdn.discordapp.com/attachments/1372358713360388127/1425176744364609617/p9s1y1krwjtf1.gif');
+        }
+	
+    if (message.content.toLowerCase().includes('n word')) {
+		if (Math.random() < 0.25) 
+			message.channel.send('“We can’t let people throw around that word. I call it the n-word. There are two n-words, and you cant use either of them.”');
+        }
+
+	if (message.content.toLowerCase().includes('fag')) {
+        if (Math.random() < 0.25) {
+            message.channel.send('https://cdn.discordapp.com/attachments/1148765358245806142/1255546535266095105/IMG_2981.jpg');
         }
     }
 
