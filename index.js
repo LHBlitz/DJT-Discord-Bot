@@ -124,6 +124,8 @@ client.once(Events.ClientReady, readyClient => {
 
 	require('./levelsystem')(client);
 
+	require('./twitterfeed')(client);
+
     require('./appolitics')(
     client,
     '1382884586790326353',
@@ -241,16 +243,6 @@ client.on('messageCreate', message => {
     if (message.content.toLowerCase().includes('man')) {
 		if (Math.random() < 0.10) 
 			message.channel.send('https://cdn.discordapp.com/attachments/1372358713360388127/1425176744364609617/p9s1y1krwjtf1.gif');
-        }
-	
-    if (message.content.toLowerCase().includes('n word')) {
-		if (Math.random() < 0.25) 
-			message.channel.send('“We can’t let people throw around that word. I call it the n-word. There are two n-words, and you cant use either of them.”');
-        }
-
-	if (message.content.toLowerCase().includes('fag')) {
-        if (Math.random() < 0.25) {
-            message.channel.send('https://cdn.discordapp.com/attachments/1148765358245806142/1255546535266095105/IMG_2981.jpg');
         }
     }
 
