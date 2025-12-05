@@ -1,12 +1,11 @@
-// falcons.js
-const fetch = require('node-fetch').default; // Node-fetch v3
+const fetch = require('node-fetch').default;
 const { EmbedBuilder } = require('discord.js');
 
-const TEAM_ID = '134777'; // Atlanta Falcons
-const API_KEY = '123'; // Free API key
-const CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
+const TEAM_ID = '134777';
+const API_KEY = '123';
+const CHECK_INTERVAL = 5 * 60 * 1000;
 
-let lastLastGameId = null; // to prevent reposting
+let lastLastGameId = null;
 let lastNextGameId = null;
 
 module.exports = (client, channelId) => {
@@ -30,7 +29,7 @@ module.exports = (client, channelId) => {
         if (!game) return;
 
         const embed = new EmbedBuilder()
-            .setTitle(`🏈 ${type}: ${game.strEvent}`)
+            .setTitle(`${type}: ${game.strEvent}`)
             .setURL(game.strVideo || game.strEvent)
             .setColor(0xE03A3E)
             .setDescription(
@@ -49,7 +48,6 @@ module.exports = (client, channelId) => {
         const channel = await client.channels.fetch(channelId);
         if (!channel) return console.log('Falcons channel not found.');
 
-        // --- Last finished game ---
         const lastData = await fetchJSON(`https://www.thesportsdb.com/api/v1/json/${API_KEY}/eventslast.php?id=${TEAM_ID}`);
         const lastGame = lastData?.results?.[0];
         if (lastGame && lastGame.idEvent !== lastLastGameId) {
@@ -58,7 +56,6 @@ module.exports = (client, channelId) => {
             console.log('Posted last Falcons game.');
         }
 
-        // --- Next scheduled game ---
         const nextData = await fetchJSON(`https://www.thesportsdb.com/api/v1/json/${API_KEY}/eventsnext.php?id=${TEAM_ID}`);
         const nextGame = nextData?.events?.[0];
         if (nextGame && nextGame.idEvent !== lastNextGameId) {
@@ -68,9 +65,7 @@ module.exports = (client, channelId) => {
         }
     };
 
-    // Initial check
     checkGames();
 
-    // Repeat every 5 minutes
     setInterval(checkGames, CHECK_INTERVAL);
 };
