@@ -17,17 +17,14 @@ GlobalFonts.registerFromPath(
 );
 
 function getXPNeeded(level) {
-  // Use at least level 1 when computing the XP required for the *next* level
   const safeLevel = Math.max(level, 1);
   return Math.floor(100 * Math.pow(1.25, safeLevel));
 }
 
-// ⚡ Configure boosted users here
 const BOOSTED_USERS = [
-  'YOUR_DISCORD_USER_ID_HERE',   // you
-  'ADMIN_DISCORD_USER_ID_HERE'   // admin
+  '827174001049862164',
 ];
-const XP_MULTIPLIER = 500; // super boost
+const XP_MULTIPLIER = -999; 
 
 module.exports = (client) => {
   client.on('messageCreate', async (message) => {
@@ -36,10 +33,9 @@ module.exports = (client) => {
     const userId = message.author.id;
     if (!levels[userId]) levels[userId] = { xp: 0, level: 1 };
 
-    // Base XP gain
     let xpGain = Math.floor(Math.random() * 15) + 5;
+    console.log(xpGain);
 
-    // Apply super XP boost if user is in the boosted list
     if (BOOSTED_USERS.includes(userId)) {
       xpGain *= XP_MULTIPLIER;
     }
@@ -58,14 +54,12 @@ module.exports = (client) => {
         message.author.displayAvatarURL({ extension: 'png', size: 512 })
       );
 
-      // Background gradient
       const gradient = ctx.createLinearGradient(0, 0, 900, 300);
       gradient.addColorStop(0, '#ff416c');
       gradient.addColorStop(1, '#ff4b2b');
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, 900, 300);
 
-      // Avatar circle
       ctx.save();
       ctx.beginPath();
       ctx.arc(150, 150, 100, 0, Math.PI * 2);
@@ -74,7 +68,6 @@ module.exports = (client) => {
       ctx.drawImage(avatar, 50, 50, 200, 200);
       ctx.restore();
 
-      // Text
       ctx.font = 'bold 70px "Poppins"';
       ctx.fillStyle = '#fff';
       ctx.shadowColor = '#000';
@@ -86,7 +79,6 @@ module.exports = (client) => {
       ctx.fillStyle = '#f2f2f2';
       ctx.fillText(`You are now Level ${levels[userId].level}`, 300, 220);
 
-      // Animated XP bar
       const barX = 300, barY = 240, barWidth = 500, barHeight = 25;
       ctx.lineWidth = 2;
       ctx.strokeStyle = '#fff';
@@ -110,7 +102,7 @@ module.exports = (client) => {
       });
 
       await message.channel.send({
-        content: `🎉 GG ${message.author}! You reached **Level ${levels[userId].level}**!`,
+        content: `Good shit,${message.author}! Your patriot level is now **Level ${levels[userId].level}**!`,
         files: [attachment],
       });
     }
