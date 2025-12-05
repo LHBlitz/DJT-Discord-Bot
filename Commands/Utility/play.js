@@ -9,7 +9,7 @@ const {
   AudioPlayerStatus,
 } = require('@discordjs/voice');
 const play = require('play-dl');
-const ytdl = require('ytdl-core'); // fallback if play-dl fails
+const ytdl = require('ytdl-core');
 
 const queues = new Map();
 
@@ -30,18 +30,18 @@ module.exports = {
     const voiceChannel = member.voice.channel;
 
     if (!voiceChannel)
-      return interaction.reply('🎧 Join a voice channel first!');
+      return interaction.reply('Join a voice channel first!');
 
     let guildQueue = queues.get(interaction.guild.id);
 
     if (!guildQueue) {
-      console.log(`🔊 Joining voice channel: ${voiceChannel.name}`);
+      console.log(`Joining voice channel: ${voiceChannel.name}`);
       const connection = joinVoiceChannel({
         channelId: voiceChannel.id,
         guildId: interaction.guild.id,
         adapterCreator: interaction.guild.voiceAdapterCreator,
-        selfDeaf: false, // don't deafen automatically
-        selfMute: false, // ensure the bot can send audio
+        selfDeaf: false,
+        selfMute: false,
       });
 
       connection.on('error', (err) => {
@@ -49,7 +49,7 @@ module.exports = {
       });
 
       connection.on('stateChange', (oldState, newState) => {
-        console.log(`🔄 Voice state: ${oldState.status} → ${newState.status}`);
+        console.log(`Voice state: ${oldState.status} → ${newState.status}`);
       });
 
       const player = createAudioPlayer();
@@ -73,7 +73,7 @@ module.exports = {
       const details = songInfo.video_details || songInfo;
       let url = details.url;
       if (!url && details.id) url = `https://www.youtube.com/watch?v=${details.id}`;
-      if (!url) return interaction.reply('⚠️ Could not determine a valid video URL.');
+      if (!url) return interaction.reply('Could not determine a valid video URL.');
 
       const song = {
         title: details.title || 'Unknown Title',
@@ -84,14 +84,14 @@ module.exports = {
       };
 
       guildQueue.songs.push(song);
-      await interaction.reply(`✅ Added **${song.title}** to the queue.`);
+      await interaction.reply(`Added **${song.title}** to the queue.`);
 
       if (guildQueue.songs.length === 1) {
         playSong(interaction.guild.id, interaction.channel);
       }
     } catch (err) {
       console.error('Error in /play command:', err);
-      interaction.reply('⚠️ Error fetching that track.');
+      interaction.reply('Error fetching that track.');
     }
   },
 };
@@ -108,13 +108,12 @@ async function playSong(guildId, textChannel) {
   try {
     console.log('🎵 Attempting to stream:', song.url);
 
-    // Try to stream using play-dl first
     let stream;
     try {
       stream = await play.stream(song.url);
-      console.log('✅ Stream fetched via play-dl:', !!stream?.stream);
+      console.log('Stream fetched via play-dl:', !!stream?.stream);
     } catch (err) {
-      console.warn('⚠️ play-dl failed, falling back to ytdl-core:', err.message);
+      console.warn('play-dl failed, falling back to ytdl-core:', err.message);
       stream = { stream: ytdl(song.url, { filter: 'audioonly', highWaterMark: 1 << 25 }), type: 'unknown' };
     }
 
@@ -124,7 +123,7 @@ async function playSong(guildId, textChannel) {
     guildQueue.player.play(resource);
 
     const embed = new EmbedBuilder()
-      .setTitle('🎶 Now Playing')
+      .setTitle('Now Playing')
       .setDescription(`[${song.title}](${song.url})`)
       .addFields(
         { name: 'Duration', value: song.duration, inline: true },
@@ -141,7 +140,7 @@ async function playSong(guildId, textChannel) {
     });
   } catch (err) {
     console.error('Error playing stream:', err);
-    textChannel.send('⚠️ Error playing the current track. Skipping...');
+    textChannel.send('Error playing the current track. Skipping...');
     guildQueue.songs.shift();
     playSong(guildId, textChannel);
   }

@@ -1,5 +1,3 @@
-// commands/Utility/war.js
-
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 
 module.exports = {
@@ -23,7 +21,7 @@ module.exports = {
 				flags: MessageFlags.Ephemeral,
 			});
 		}
-		// eslint-disable-next-line no-unused-vars
+		
 		catch (error) {
 			console.warn(`Declare war request blocked: ${interaction.user.tag} → ${targetUser.tag}`);
 

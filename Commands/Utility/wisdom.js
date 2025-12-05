@@ -1,5 +1,3 @@
-// Commands/Utility/wisdom.js
-
 const { SlashCommandBuilder } = require('discord.js');
 const { wisdomResponses } = require('../../responses.js');
 

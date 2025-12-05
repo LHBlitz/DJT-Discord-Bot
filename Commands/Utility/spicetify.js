@@ -1,5 +1,3 @@
-// Commands/Utility/spicetify.js
-
 const { SlashCommandBuilder } = require('discord.js');
 
 module.exports = {

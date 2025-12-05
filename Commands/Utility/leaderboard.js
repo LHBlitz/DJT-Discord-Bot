@@ -34,28 +34,23 @@ module.exports = {
       return interaction.editReply({ content: 'No XP data found yet!' });
     }
 
-    // Sort descending by level then XP
     users.sort(([, a], [, b]) => b.level - a.level || b.xp - a.xp);
     const topUsers = users.slice(0, 10);
 
-    // Dynamic canvas dimensions
     const width = 1000;
     const rowHeight = 100;
     const paddingTop = 150;
-    const height = paddingTop + topUsers.length * rowHeight + 50; // extra padding at bottom
+    const height = paddingTop + topUsers.length * rowHeight + 50;
     const canvas = createCanvas(width, height);
     const ctx = canvas.getContext('2d');
 
-    // Load US flag as background
     try {
       const flag = await loadImage(path.join(__dirname, '../../assets/american_flag.png'));
 
-      // Scale flag to fill width, maintain aspect ratio
       const scale = width / flag.width;
       const scaledHeight = flag.height * scale;
       ctx.drawImage(flag, 0, 0, width, scaledHeight);
 
-      // Optional overlay for readability
       ctx.fillStyle = 'rgba(0,0,0,0.35)';
       ctx.fillRect(0, 0, width, height);
     } catch {
@@ -67,12 +62,10 @@ module.exports = {
       ctx.fillRect(0, 0, width, height);
     }
 
-    // Title
     ctx.font = 'bold 50px "Poppins"';
     ctx.fillStyle = '#fff';
     ctx.fillText('Leaderboard', 50, 60);
 
-    // Draw each user
     let y = paddingTop;
     for (let i = 0; i < topUsers.length; i++) {
       const [userId, data] = topUsers[i];
@@ -81,7 +74,6 @@ module.exports = {
       const nextXP = getXPNeeded(level);
       const progress = Math.min(xp / nextXP, 1);
 
-      // Load avatar
       let avatar;
       try {
         const user = await interaction.client.users.fetch(userId);
@@ -98,7 +90,6 @@ module.exports = {
         ctx.restore();
       }
 
-      // Username + Level
       ctx.font = 'bold 28px "Poppins"';
       ctx.fillStyle = '#fff';
       let username = userId;
@@ -109,7 +100,6 @@ module.exports = {
       ctx.fillText(`${i + 1}. ${username}`, 120, y + rowHeight / 2 + 10);
       ctx.fillText(`Level ${level} | XP: ${xp}`, 400, y + rowHeight / 2 + 10);
 
-      // XP bar
       const barX = 400;
       const barY = y + rowHeight / 2 + 20;
       const barWidth = 500;

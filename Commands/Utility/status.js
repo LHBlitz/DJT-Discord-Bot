@@ -5,18 +5,17 @@ const path = require('path');
 const postedArticlesFile = path.join(__dirname, '../../postedArticles.json');
 const roleCacheFile = path.join(__dirname, '../../rolecache.json');
 
-const FEED_CHANNEL_ID = 'PUT_ID_HERE';
+const FEED_CHANNEL_ID = '1374873902437761086';
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('status')
         .setDescription('Check the status of the bot.'),
     async execute(interaction) {
-        // ----- Uptime -----
+
         const uptimeSeconds = process.uptime();
         const uptime = `${Math.floor(uptimeSeconds / 3600)}h ${Math.floor((uptimeSeconds % 3600) / 60)}m ${Math.floor(uptimeSeconds % 60)}s`;
 
-        // ----- Role Cache -----
         let roleCacheCount = 0;
         let roleCacheHealthy = true;
         if (fs.existsSync(roleCacheFile)) {
@@ -30,7 +29,6 @@ module.exports = {
             roleCacheHealthy = false;
         }
 
-        // ----- Articles / Feed -----
         let lastArticlesCount = 0;
         let lastFeedCheck = 'N/A';
         let feedHealthy = true;
@@ -49,11 +47,9 @@ module.exports = {
             feedHealthy = false;
         }
 
-        // ----- Channel Checks -----
         const feedChannel = interaction.client.channels.cache.get(FEED_CHANNEL_ID);
         const feedChannelHealthy = !!feedChannel;
 
-        // ----- Overall Health -----
         let healthStatus = 'Excellent';
         const issues = [];
         if (!roleCacheHealthy) issues.push('Role Cache');
@@ -63,7 +59,6 @@ module.exports = {
         if (issues.length === 1) healthStatus = 'Minor Issues';
         else if (issues.length > 1) healthStatus = 'Major Issues';
 
-        // ----- Embed -----
         const embed = new EmbedBuilder()
             .setTitle('Donalds Health')
             .setColor(0xffcc00)
@@ -79,6 +74,6 @@ module.exports = {
             .setFooter({ text: 'Trump Bot Status', iconURL: interaction.client.user.displayAvatarURL() })
             .setTimestamp();
 
-        await interaction.reply({ embeds: [embed], ephemeral: false }); // public output
+        await interaction.reply({ embeds: [embed], ephemeral: false });
     },
 };
