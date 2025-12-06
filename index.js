@@ -139,28 +139,45 @@ client.once(Events.ClientReady, readyClient => {
 });
 
 client.on(Events.InteractionCreate, async interaction => {
-	if (!interaction.isChatInputCommand()) return;
 
-	if (global.commandLock) {
-		return interaction.reply({
-			content: 'Try again later! I\'m too busy sending Israel more money right now (error)',
-			flags: MessageFlags.Ephemeral,
-		});
-	}
+	if (interaction.isAutocomplete()) {
+		const command = interaction.client.commands.get(interaction.commandName);
+		if (!command || typeof command.autocomplete !== 'function') return;
 
-	const command = interaction.client.commands.get(interaction.commandName);
-	if (!command) {
-		console.error(`No command matching ${interaction.commandName} was found.`);
+		try {
+			await command.autocomplete(interaction);
+		} catch (error) {
+			console.error(`Autocomplete error in /${interaction.commandName}:`, error);
+		}
 		return;
 	}
 
-	try {
-		await command.execute(interaction);
-		AdminCore.logEvent('COMMAND', `${interaction.user.tag} executed /${interaction.commandName}`);
-	} catch (error) {
-		console.error(error);
-		AdminCore.logEvent('ERROR', `${interaction.commandName} failed for ${interaction.user.tag}: ${error.message}`);
-		await interaction.reply({ content: 'Try again later! I\'m too busy sending Israel more money right now (error)', flags: MessageFlags.Ephemeral }).catch(() => {});
+	if (interaction.isChatInputCommand()) {
+
+		if (global.commandLock) {
+			return interaction.reply({
+				content: 'Try again later! I\'m too busy sending Israel more money right now (error)',
+				flags: MessageFlags.Ephemeral,
+			});
+		}
+
+		const command = interaction.client.commands.get(interaction.commandName);
+		if (!command) {
+			console.error(`No command matching ${interaction.commandName} was found.`);
+			return;
+		}
+
+        try {
+            await command.execute(interaction);
+            AdminCore.logEvent('COMMAND', `${interaction.user.tag} executed /${interaction.commandName}`);
+        } catch (error) {
+            console.error(error);
+            AdminCore.logEvent('ERROR', `${interaction.commandName} failed for ${interaction.user.tag}: ${error.message}`);
+            await interaction.reply({
+                content: 'Try again later! I\'m too busy sending Israel more money right now (error)',
+                flags: MessageFlags.Ephemeral,
+            }).catch(() => {});
+        }
 	}
 });
 
