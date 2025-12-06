@@ -73,22 +73,38 @@ module.exports = {
         }
 
         if (deals.length === 0) {
-            return interaction.editReply("Sorry pal, Israel already took all the deals. (No deals found for the selected store)");
+            return interaction.editReply("Sorry pal, Israel already took all the deals. (No deals found)");
         }
 
         const cheapest = deals.reduce((a, b) =>
             parseFloat(a.price) < parseFloat(b.price) ? a : b
         );
 
+        const historicalLowest = data.cheapestPriceEver || { price: "Unknown", storeID: null };
+
         const storeRes = await fetch('https://www.cheapshark.com/api/1.0/stores');
         const storeList = await storeRes.json();
-        const storeName = storeList.find(s => s.storeID == cheapest.storeID)?.storeName || "Unknown Store";
+
+        const storeData = storeList.find(s => s.storeID == cheapest.storeID) || { storeName: "Unknown Store", images: { logo: "" } };
+        const storeName = storeData.storeName;
+        const storeLogo = storeData.images?.logo ? `https://www.cheapshark.com${storeData.images.logo}` : null;
+
+        const histStoreData = storeList.find(s => s.storeID == historicalLowest.storeID) || { storeName: "Unknown Store" };
+        const histStoreName = histStoreData.storeName;
 
         const embed = new EmbedBuilder()
             .setTitle(data.info.title)
             .setURL(`https://www.cheapshark.com/redirect?dealID=${cheapest.dealID}`)
-            .setDescription(`**$${cheapest.price}** (Normal: $${cheapest.retailPrice})\nStore: **${storeName}**`)
-            .setThumbnail(data.info.thumb);
+            .setDescription(
+                `**Current Lowest Price:** $${cheapest.price} (Normal: $${cheapest.retailPrice})\n` +
+                `Store: **${storeName}**\n` +
+                `Link: [View the deal here.](https://www.cheapshark.com/redirect?dealID=${cheapest.dealID})\n\n` +
+                `**Historical Lowest Price:** $${historicalLowest.price}\n` +
+                `Store: **${histStoreName}**`
+            )
+            .setImage(data.info.thumb)
+            .setThumbnail(storeLogo)
+            .setColor('Blue');
 
         interaction.editReply({ embeds: [embed] });
     }
