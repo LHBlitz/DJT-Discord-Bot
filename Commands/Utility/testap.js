@@ -1,4 +1,3 @@
-// commands/Utility/testap.js
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 
 module.exports = {
@@ -8,7 +7,7 @@ module.exports = {
     async execute(interaction) {
         const embed = new EmbedBuilder()
             .setColor(0xffcc00)
-            .setTitle('🗞️ TEST: AP Politics Bot Working!')
+            .setTitle('TEST: AP Politics Bot Working!')
             .setDescription('This is a test post to verify the RSS integration.')
             .setURL('https://apnews.com/politics')
             .setTimestamp(new Date())

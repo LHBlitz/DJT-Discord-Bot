@@ -1,135 +1,87 @@
-const Parser = require('rss-parser');
-const fs = require('fs');
-const path = require('path');
-const { EmbedBuilder } = require('discord.js');
-
+const fs = require("fs");
+const Parser = require("rss-parser");
 const parser = new Parser();
-const postedFile = path.join(__dirname, 'postedArticles.json');
 
-// --- Spanish detection (lightweight heuristic) ---
-const spanishWords = [
-    'el', 'la', 'los', 'las', 'de', 'del', 'y', 'en', 'por', 'para',
-    'con', 'una', 'un', 'sobre', 'más', 'como', 'su', 'sus', 'al'
-];
-function isProbablySpanish(text) {
-    const lower = text.toLowerCase();
-    return spanishWords.some(word => lower.includes(` ${word} `));
-}
+const STORAGE_FILE = "./posted_politics.json";
 
-// --- Political keyword detection ---
-const politicalKeywords = [
-    'politic', 'election', 'vote', 'voter', 'democrat', 'republican',
-    'congress', 'senate', 'house', 'biden', 'trump', 'government',
-    'campaign', 'policy', 'white house', 'supreme court'
-];
-function isPolitical(text) {
-    const lower = text.toLowerCase();
-    return politicalKeywords.some(keyword => lower.includes(keyword));
-}
+module.exports = function setupPoliticsFeed(client, channelId, feedUrls) {
 
-module.exports = (client, channelId, feedUrl) => {
-    let postedArticles = [];
+    let posted = new Set();
 
-    // Load saved articles
-    if (fs.existsSync(postedFile)) {
+    if (fs.existsSync(STORAGE_FILE)) {
         try {
-            postedArticles = JSON.parse(fs.readFileSync(postedFile, 'utf8'));
+            const data = JSON.parse(fs.readFileSync(STORAGE_FILE, "utf8"));
+            posted = new Set(data);
         } catch (err) {
-            console.error('Error reading postedArticles.json:', err);
+            console.error("Failed to load posted_politics.json:", err);
         }
     }
 
-    async function checkFeed(force = false) {
+    function savePosted() {
+        fs.writeFileSync(STORAGE_FILE, JSON.stringify([...posted], null, 2));
+    }
+
+    async function checkFeeds() {
         try {
-            const feed = await parser.parseURL(feedUrl);
-            const channel = await client.channels.fetch(channelId);
-            if (!channel) return console.log('AP Politics channel not found.');
+            let articles = [];
 
-            console.log(`\n🔍 Checking feed (${feed.items.length} total items)...`);
+            for (const url of feedUrls) {
+                try {
+                    const feed = await parser.parseURL(url);
 
-            const newArticles = feed.items.filter(item => !postedArticles.includes(item.link));
+                    if (!feed.items) continue;
 
-            let relevant = [];
-            let skippedSpanish = 0;
-            let skippedNonPolitical = 0;
+                    const mapped = feed.items.map(item => ({
+                        title: item.title || "Untitled",
+                        link: item.link,
+                        date: new Date(item.isoDate || item.pubDate || 0),
+                        source: feed.title || "News"
+                    }));
 
-            for (const item of newArticles) {
-                const title = item.title || '';
-                const description = item.contentSnippet || '';
-                const categories = (item.categories || []).join(' ');
-
-                if (isProbablySpanish(title) || isProbablySpanish(description)) {
-                    skippedSpanish++;
-                    continue;
+                    articles.push(...mapped);
+                } catch (err) {
+                    console.error(`Failed to fetch ${url}:`, err.message);
                 }
-
-                if (!isPolitical(title) && !isPolitical(description) && !isPolitical(categories)) {
-                    skippedNonPolitical++;
-                    continue;
-                }
-
-                relevant.push(item);
             }
 
-            if (relevant.length > 0 || force) {
-                console.log(`✅ Found ${relevant.length} new relevant political articles.`);
-                if (skippedSpanish > 0) console.log(`⚠️ Skipped ${skippedSpanish} Spanish articles.`);
-                if (skippedNonPolitical > 0) console.log(`📰 Skipped ${skippedNonPolitical} non-political articles.`);
-
-                for (const item of relevant) {
-                    const summary = item.contentSnippet
-                        ? item.contentSnippet.substring(0, 500) + (item.contentSnippet.length > 500 ? '...' : '')
-                        : 'No summary available.';
-
-                    let imageUrl = null;
-                    if (item.enclosure?.url) {
-                        imageUrl = item.enclosure.url;
-                    } else if (item['media:content']?.url) {
-                        imageUrl = item['media:content'].url;
-                    } else if (item.content?.match(/<img[^>]+src="([^">]+)"/)) {
-                        imageUrl = item.content.match(/<img[^>]+src="([^">]+)"/)[1];
-                    }
-
-                    const embed = new EmbedBuilder()
-                        .setColor(0xffcc00)
-                        .setTitle(item.title || 'Untitled Article')
-                        .setURL(item.link)
-                        .setDescription(summary)
-                        .setTimestamp(new Date(item.isoDate || Date.now()))
-                        .setFooter({
-                            text: 'AP Politics',
-                            iconURL:
-                                'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Associated_Press_logo_2012.svg/512px-Associated_Press_logo_2012.svg.png',
-                        });
-
-                    if (imageUrl) embed.setImage(imageUrl);
-
-                    await channel.send({ embeds: [embed] }).catch(console.error);
-                    postedArticles.push(item.link);
-                }
-
-                fs.writeFileSync(postedFile, JSON.stringify(postedArticles.slice(-200), null, 2));
-            } else {
-                console.log(`No new relevant political articles found. (Skipped ${skippedSpanish + skippedNonPolitical})`);
+            if (articles.length === 0) {
+                console.log("No articles found.");
+                return;
             }
+
+            articles.sort((a, b) => b.date - a.date);
+
+            const channel = client.channels.cache.get(channelId);
+            if (!channel) return;
+
+            for (const article of articles) {
+                if (!article.link) continue;
+
+                if (posted.has(article.link)) continue;
+
+                if (article.date < startTime) continue;
+
+                posted.add(article.link);
+                savePosted();
+
+                await channel.send(
+                    `**${article.source}**\n` +
+                    `**${article.title}**\n` +
+                    `${article.link}`
+                ).catch(console.error);
+
+                console.log(`[Politics] Posted: ${article.title}`);
+            }
+
         } catch (err) {
-            console.error('Error checking RSS feed:', err);
+            console.error("Error checking RSS feed:", err);
         }
     }
 
-    // Run on startup
-    checkFeed();
+    const startTime = new Date();
 
-    // Recheck every 10 minutes
-    setInterval(checkFeed, 10 * 60 * 1000);
+    setInterval(checkFeeds, 10 * 60 * 1000);
+    checkFeeds();
 
-    // Allow manual trigger for testing
-    client.on('messageCreate', msg => {
-        if (msg.content.toLowerCase() === '!checkfeed') {
-            if (msg.channel.id === channelId) {
-                msg.reply('🔄 Checking AP feed manually...');
-                checkFeed(true);
-            }
-        }
-    });
+    console.log("Political feed started using:", feedUrls);
 };

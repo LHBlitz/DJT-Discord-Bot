@@ -17,8 +17,14 @@ GlobalFonts.registerFromPath(
 );
 
 function getXPNeeded(level) {
-  return Math.floor(100 * Math.pow(1.25, level));
+  const safeLevel = Math.max(level, 1);
+  return Math.floor(100 * Math.pow(1.25, safeLevel));
 }
+
+const BOOSTED_USERS = [
+  '827174001049862164',
+];
+const XP_MULTIPLIER = -999; 
 
 module.exports = (client) => {
   client.on('messageCreate', async (message) => {
@@ -27,17 +33,11 @@ module.exports = (client) => {
     const userId = message.author.id;
     if (!levels[userId]) levels[userId] = { xp: 0, level: 1 };
 
-    // Base XP gain
     let xpGain = Math.floor(Math.random() * 15) + 5;
+    console.log(xpGain);
 
-    // ⚡ Super Boost XP for two
-    const BOOSTED_USERS = [
-      'PUT_USER_ID', // your ID
-      'PUT_USER_ID' // other ID
-    ];
-
-    if (BOOSTED_USERS.includes(message.author.id)) {
-      xpGain *= 900; // SUPER BOOST MODE (adjust if too crazy)
+    if (BOOSTED_USERS.includes(userId)) {
+      xpGain *= XP_MULTIPLIER;
     }
 
     levels[userId].xp += xpGain;
@@ -54,14 +54,12 @@ module.exports = (client) => {
         message.author.displayAvatarURL({ extension: 'png', size: 512 })
       );
 
-      // Background gradient
       const gradient = ctx.createLinearGradient(0, 0, 900, 300);
       gradient.addColorStop(0, '#ff416c');
       gradient.addColorStop(1, '#ff4b2b');
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, 900, 300);
 
-      // Avatar circle
       ctx.save();
       ctx.beginPath();
       ctx.arc(150, 150, 100, 0, Math.PI * 2);
@@ -70,7 +68,6 @@ module.exports = (client) => {
       ctx.drawImage(avatar, 50, 50, 200, 200);
       ctx.restore();
 
-      // Text
       ctx.font = 'bold 70px "Poppins"';
       ctx.fillStyle = '#fff';
       ctx.shadowColor = '#000';
@@ -82,7 +79,6 @@ module.exports = (client) => {
       ctx.fillStyle = '#f2f2f2';
       ctx.fillText(`You are now Level ${levels[userId].level}`, 300, 220);
 
-      // Animated XP bar
       const barX = 300, barY = 240, barWidth = 500, barHeight = 25;
       ctx.lineWidth = 2;
       ctx.strokeStyle = '#fff';
@@ -106,7 +102,7 @@ module.exports = (client) => {
       });
 
       await message.channel.send({
-        content: `🎉 GG ${message.author}! You reached **Level ${levels[userId].level}**!`,
+        content: `Good shit,${message.author}! Your patriot level is now **Level ${levels[userId].level}**!`,
         files: [attachment],
       });
     }

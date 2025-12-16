@@ -1,5 +1,3 @@
-// Commands/Utility/selfkick.js
-
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 
 module.exports = {
@@ -21,7 +19,7 @@ module.exports = {
 		}
 
 		try {
-			await interaction.reply({ content: `GET THE FUCK OUT OF MY COUNTRY ${interaction.user.tag.toUpperCase()}     FAGGOT` });
+			await interaction.reply({ content: `GET THE FUCK OUT OF MY COUNTRY ${interaction.user.tag}     FAGGOT` });
 			await member.kick();
 		}
 		catch {
