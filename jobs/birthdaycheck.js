@@ -1,5 +1,6 @@
 const cron = require("node-cron");
 const { getBirthdaysForGuild, markCelebrated } = require("../data/birthdays");
+const { EmbedBuilder } = require("discord.js");
 
 module.exports = function startBirthdayJob(client) {
   cron.schedule("* * * * *", async () => {
@@ -29,11 +30,13 @@ module.exports = function startBirthdayJob(client) {
 
         const age = b.year ? local.getFullYear() - b.year : null;
 
-        const message = age
-          ? `**Happy ${age}th Birthday, ${member}!**`
-          : `**Happy Birthday, ${member}!**`;
+        const embed = new EmbedBuilder()
+          .setTitle("Happy Birthday!")
+          .setDescription(`Happy birthday, ${member}! You just turned ${age}. Thank you for being a true PATRIOT and helping keep America safe from the RADICAL lefties. God bless you, God bless America, and happy birthday.`)
+          .setColor("Gold")
+          .setImage(member.user.displayAvatarURL({ dynamic: true, size: 512 }));
 
-        await announcementChannel.send(message);
+        await announcementChannel.send({ embeds: [embed] });
 
         if (birthdayRole) {
           await member.roles.add(birthdayRole).catch(() => {});
