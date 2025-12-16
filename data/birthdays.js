@@ -9,9 +9,17 @@ function save() {
   fs.writeFileSync(filePath, JSON.stringify(birthdays, null, 2));
 }
 
-function setBirthday(userId, guildId, month, day, timezone) {
+function setBirthday(userId, guildId, month, day, year, timezone) {
   if (!birthdays[guildId]) birthdays[guildId] = {};
-  birthdays[guildId][userId] = { month, day, timezone };
+
+  birthdays[guildId][userId] = {
+    month,
+    day,
+    year,
+    timezone,
+    lastCelebrated: birthdays[guildId][userId]?.lastCelebrated ?? null
+  };
+
   save();
 }
 
@@ -34,4 +42,27 @@ function getUpcomingBirthdays(guildId) {
   }));
 }
 
-module.exports = { setBirthday, removeBirthday, getBirthday, getUpcomingBirthdays };
+function getBirthdaysForGuild(guildId) {
+  const guildData = birthdays[guildId];
+  if (!guildData) return [];
+
+  return Object.entries(guildData).map(([userId, data]) => ({
+    userId,
+    ...data
+  }));
+}
+
+function markCelebrated(userId, guildId, year) {
+  if (!birthdays[guildId]?.[userId]) return;
+  birthdays[guildId][userId].lastCelebrated = year;
+  save();
+}
+
+module.exports = {
+  setBirthday,
+  removeBirthday,
+  getBirthday,
+  getUpcomingBirthdays,
+  getBirthdaysForGuild,
+  markCelebrated,
+};
