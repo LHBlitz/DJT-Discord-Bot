@@ -4,6 +4,7 @@ const { Client, Collection, Events, GatewayIntentBits, MessageFlags, ActivityTyp
 const { token } = require('./config.json');
 const { jomarResponses, harassment, randomMessages, epsteinMessages, statuses } = require('./responses.js');
 const AdminCore = require('./admincore');
+const startBirthdayJob = require('./jobs/birthdaycheck.js');
 
 const NITTER_INSTANCE = "https://xcancel.com";
 
@@ -135,7 +136,7 @@ client.once(Events.ClientReady, readyClient => {
     ]
 );
 
-	AdminCore.sendAlert(client, 'Bot Online', `${readyClient.user.tag} is now active and monitoring the server.`);
+	AdminCore.sendAlert(client, 'Bot Online', `${readyClient.user.tag} is now active and looking for immigrants.`);
 });
 
 client.on(Events.InteractionCreate, async interaction => {
