@@ -83,6 +83,8 @@ client.once(Events.ClientReady, readyClient => {
 	AdminCore.startAutoBackup(xpPath, 60);
 	AdminCore.startAutoBackup(levelsPath, 60);
 
+	startBirthdayJob(readyClient);
+
 	setInterval(() => {
 		if (Math.random() < currentChance) {
 			const randomMessage = randomMessages[Math.floor(Math.random() * randomMessages.length)];
