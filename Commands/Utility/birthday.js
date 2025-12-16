@@ -6,7 +6,7 @@ const {
   getUpcomingBirthdays
 } = require("../../data/birthdays");
 
-const northAmericaTimezones = [
+const timezones = [
   "America/New_York",
   "America/Chicago",
   "America/Denver",
@@ -21,37 +21,53 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName("birthday")
     .setDescription("Manage birthday settings")
+
     .addSubcommand(sub =>
       sub.setName("set")
         .setDescription("Set your birthday")
         .addIntegerOption(o =>
-          o.setName("month").setRequired(true).setDescription("1-12"))
+          o.setName("month")
+            .setRequired(true)
+            .setDescription("1-12"))
         .addIntegerOption(o =>
-          o.setName("day").setRequired(true).setDescription("1-31"))
+          o.setName("day")
+            .setRequired(true)
+            .setDescription("1-31"))
+        .addIntegerOption(o =>
+          o.setName("year")
+            .setRequired(true)
+            .setDescription("Your birth year")
+            .setMinValue(1900)
+            .setMaxValue(new Date().getFullYear()))
         .addStringOption(o =>
           o.setName("timezone")
             .setRequired(true)
             .setDescription("Select your timezone")
             .addChoices(
-              ...northAmericaTimezones.map(tz => ({ name: tz, value: tz }))
+              ...timezones.map(tz => ({ name: tz, value: tz }))
             )
         )
     )
+
     .addSubcommand(sub =>
-  sub.setName("remove")
-    .setDescription("Remove your birthday."))
-.addSubcommand(sub =>
-  sub.setName("view")
-    .setDescription("View your saved birthday."))
-.addSubcommand(sub =>
-  sub.setName("upcoming")
-    .setDescription("See upcoming birthdays."))
-.addSubcommand(sub =>
-  sub.setName("timezones")
-    .setDescription("See a list of valid North American timezones."))
-.addSubcommand(sub =>
-  sub.setName("world")
-    .setDescription("View timezones from all over the world.")),
+      sub.setName("remove")
+        .setDescription("Remove your birthday."))
+
+    .addSubcommand(sub =>
+      sub.setName("view")
+        .setDescription("View your saved birthday."))
+
+    .addSubcommand(sub =>
+      sub.setName("upcoming")
+        .setDescription("See upcoming birthdays."))
+
+    .addSubcommand(sub =>
+      sub.setName("timezones")
+        .setDescription("See a list of valid North American timezones."))
+
+    .addSubcommand(sub =>
+      sub.setName("world")
+        .setDescription("View worldwide timezone list.")),
 
   async execute(interaction) {
     const sub = interaction.options.getSubcommand();
@@ -59,6 +75,7 @@ module.exports = {
     if (sub === "set") {
       const month = interaction.options.getInteger("month");
       const day = interaction.options.getInteger("day");
+      const year = interaction.options.getInteger("year");
       const timezone = interaction.options.getString("timezone");
 
       if (month < 1 || month > 12 || day < 1 || day > 31) {
@@ -71,7 +88,14 @@ module.exports = {
         return interaction.reply({ content: "Invalid timezone.", ephemeral: true });
       }
 
-      setBirthday(interaction.user.id, interaction.guild.id, month, day, timezone);
+      setBirthday(
+        interaction.user.id,
+        interaction.guild.id,
+        month,
+        day,
+        year,
+        timezone
+      );
 
       return interaction.reply({
         content: "Birthday saved!",
@@ -93,8 +117,17 @@ module.exports = {
         return interaction.reply({ content: "You don't have a birthday set.", ephemeral: true });
       }
 
+      const now = new Date();
+      let nextBirthday = new Date(now);
+      nextBirthday.setMonth(b.month - 1);
+      nextBirthday.setDate(b.day);
+      nextBirthday.setFullYear(now.getFullYear());
+      if (nextBirthday < now) nextBirthday.setFullYear(now.getFullYear() + 1);
+
+      const age = b.year ? nextBirthday.getFullYear() - b.year : null;
+
       return interaction.reply({
-        content: `Your birthday is **${b.month}/${b.day}** (${b.timezone})`,
+        content: `**${b.month}/${b.day}/${b.year}**\nYou will turn **${age}** on your next birthday.\nTimezone: **${b.timezone}**`,
         ephemeral: true
       });
     }
@@ -105,32 +138,54 @@ module.exports = {
         return interaction.reply({ content: "No upcoming birthdays.", ephemeral: true });
       }
 
+      const now = new Date();
+
+      const upcoming = list.map(b => {
+        let nextBirthday = new Date(now);
+        nextBirthday.setMonth(b.month - 1);
+        nextBirthday.setDate(b.day);
+        nextBirthday.setFullYear(now.getFullYear());
+        if (nextBirthday < now) nextBirthday.setFullYear(now.getFullYear() + 1);
+
+        const age = b.year ? nextBirthday.getFullYear() - b.year : null;
+        const yearTurning = nextBirthday.getFullYear();
+
+        return {
+          userId: b.userId,
+          month: b.month,
+          day: b.day,
+          age,
+          yearTurning,
+        };
+      });
+
+      upcoming.sort((a, b) => {
+        const aDate = new Date(`${a.month}/${a.day}/${a.yearTurning}`);
+        const bDate = new Date(`${b.month}/${b.day}/${b.yearTurning}`);
+        return aDate - bDate;
+      });
+
       const embed = new EmbedBuilder()
         .setTitle("Upcoming Birthdays")
+        .setColor("Gold")
         .setDescription(
-          list.map(b => `<@${b.userId}> — **${b.month}/${b.day}**`).join("\n")
-        )
-        .setColor("Gold");
+          upcoming.map(b => `<@${b.userId}> — **${b.month}/${b.day}** (turning ${b.age} in ${b.yearTurning})`).join("\n")
+        );
 
       return interaction.reply({ embeds: [embed] });
     }
 
     if (sub === "world") {
-  return interaction.reply({
-    content: "View all worldwide timezones here: https://momentjs.com/timezone/"
-  });
-}
-  
+      return interaction.reply({
+        content: "View all worldwide timezones here:\nhttps://momentjs.com/timezone/"
+      });
+    }
+
     if (sub === "timezones") {
       const embed = new EmbedBuilder()
         .setTitle("North American Timezones")
-        .setColor("Blue");
-
-      const chunkSize = 10;
-      for (let i = 0; i < northAmericaTimezones.length; i += chunkSize) {
-        const chunk = northAmericaTimezones.slice(i, i + chunkSize);
-        embed.addFields({ name: "\u200B", value: chunk.join("\n") });
-      }
+        .setColor("Blue")
+        .setDescription(timezones.join("\n"));
 
       return interaction.reply({ embeds: [embed], ephemeral: true });
     }
