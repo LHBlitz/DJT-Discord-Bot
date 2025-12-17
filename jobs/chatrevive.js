@@ -1,3 +1,5 @@
+console.log("[ChatRevive] File loaded");
+
 const INACTIVITY_HOURS = 1;
 const CHECK_INTERVAL_MINUTES = 5;
 
@@ -7,7 +9,7 @@ const reviveMessages = [
   "Where all the bitches at?",
   "It's so quiet in here you could hear me blowing Bill.",
   "Why's it so quiet? Is it because of black fatigue?",
-  "Man, it's silent here. We used to make more noise on Jeff's island."
+  "Man, it's silent here. We used to make more noise on Jeff's island.",
 ];
 
 module.exports = function startChatReviveJob(client) {
@@ -39,18 +41,17 @@ module.exports = function startChatReviveJob(client) {
     }
   }
 
-  client.once("ready", async () => {
-    const channel = await client.channels.fetch(GENERAL_CHANNEL_ID).catch(() => null);
-    if (!channel || !channel.isTextBased()) return;
+  (async () => {
+  const channel = await client.channels.fetch(GENERAL_CHANNEL_ID).catch(() => null);
+  if (!channel || !channel.isTextBased()) return;
 
-    const messages = await channel.messages.fetch({ limit: 1 }).catch(() => null);
-    const lastMsg = messages?.first();
-    if (lastMsg && !lastMsg.author.bot) lastActivity = lastMsg.createdTimestamp;
+  const messages = await channel.messages.fetch({ limit: 1 }).catch(() => null);
+  const lastMsg = messages?.first();
 
-    console.log("[ChatRevive] Tracking started");
+  if (lastMsg && !lastMsg.author.bot) {
+    lastActivity = lastMsg.createdTimestamp;
+  }
 
-    await checkInactivity();
-
-    setInterval(checkInactivity, CHECK_INTERVAL_MINUTES * 60 * 1000);
-  });
+  console.log("[ChatRevive] Tracking started");
+})();
 };
