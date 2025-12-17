@@ -5,6 +5,7 @@ const { token } = require('./config.json');
 const { jomarResponses, harassment, randomMessages, epsteinMessages, statuses } = require('./responses.js');
 const AdminCore = require('./admincore');
 const startBirthdayJob = require('./jobs/birthdaycheck.js');
+const startChatReviveJob = require("./jobs/chatrevive");
 
 const NITTER_INSTANCE = "https://xcancel.com";
 
@@ -84,6 +85,7 @@ client.once(Events.ClientReady, readyClient => {
 	AdminCore.startAutoBackup(levelsPath, 60);
 
 	startBirthdayJob(readyClient);
+	startChatReviveJob(client);
 
 	setInterval(() => {
 		if (Math.random() < currentChance) {
