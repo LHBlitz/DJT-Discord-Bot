@@ -4,7 +4,6 @@ const CHECK_INTERVAL_MINUTES = 5;
 const GENERAL_CHANNEL_ID = "1375295434997891183";
 
 const reviveMessages = [
-  "It hasn't been this quiet since I raped that woman.",
   "Where all the bitches at?",
   "It's so quiet in here you could hear me blowing Bill.",
   "Why's it so quiet? Is it because of black fatigue?",
@@ -58,3 +57,4 @@ module.exports = function startChatReviveJob(client) {
 
   }, CHECK_INTERVAL_MINUTES * 60 * 1000);
 };
+
