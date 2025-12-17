@@ -22,39 +22,35 @@ module.exports = function startChatReviveJob(client) {
     reviveSent = false;
   });
 
-  (async () => {
-  const channel = await client.channels.fetch(GENERAL_CHANNEL_ID).catch(() => null);
-  if (!channel || !channel.isTextBased()) return;
-
-  const messages = await channel.messages.fetch({ limit: 1 }).catch(() => null);
-  const lastMsg = messages?.first();
-
-  if (lastMsg && !lastMsg.author.bot) {
-    lastActivity = lastMsg.createdTimestamp;
-  }
-
-  console.log("[ChatRevive] Tracking started");
-})();
-
-
-  setInterval(async () => {
+  async function checkInactivity() {
     if (reviveSent) return;
 
     const now = Date.now();
     const inactiveFor = now - lastActivity;
     const threshold = INACTIVITY_HOURS * 60 * 60 * 1000;
 
-    if (inactiveFor < threshold) return;
+    if (inactiveFor >= threshold) {
+      const channel = await client.channels.fetch(GENERAL_CHANNEL_ID).catch(() => null);
+      if (!channel) return;
 
+      const message = reviveMessages[Math.floor(Math.random() * reviveMessages.length)];
+      await channel.send(message);
+      reviveSent = true;
+    }
+  }
+
+  client.once("ready", async () => {
     const channel = await client.channels.fetch(GENERAL_CHANNEL_ID).catch(() => null);
-    if (!channel) return;
+    if (!channel || !channel.isTextBased()) return;
 
-    const message =
-      reviveMessages[Math.floor(Math.random() * reviveMessages.length)];
+    const messages = await channel.messages.fetch({ limit: 1 }).catch(() => null);
+    const lastMsg = messages?.first();
+    if (lastMsg && !lastMsg.author.bot) lastActivity = lastMsg.createdTimestamp;
 
-    await channel.send(message);
-    reviveSent = true;
+    console.log("[ChatRevive] Tracking started");
 
-  }, CHECK_INTERVAL_MINUTES * 60 * 1000);
+    await checkInactivity();
+
+    setInterval(checkInactivity, CHECK_INTERVAL_MINUTES * 60 * 1000);
+  });
 };
-
