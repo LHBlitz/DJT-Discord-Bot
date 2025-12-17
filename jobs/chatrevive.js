@@ -23,19 +23,20 @@ module.exports = function startChatReviveJob(client) {
     reviveSent = false;
   });
 
-  client.once("ready", async () => {
-    const channel = await client.channels.fetch(GENERAL_CHANNEL_ID).catch(() => null);
-    if (!channel || !channel.isTextBased()) return;
+  (async () => {
+  const channel = await client.channels.fetch(GENERAL_CHANNEL_ID).catch(() => null);
+  if (!channel || !channel.isTextBased()) return;
 
-    const messages = await channel.messages.fetch({ limit: 1 }).catch(() => null);
-    const lastMsg = messages?.first();
+  const messages = await channel.messages.fetch({ limit: 1 }).catch(() => null);
+  const lastMsg = messages?.first();
 
-    if (lastMsg && !lastMsg.author.bot) {
-      lastActivity = lastMsg.createdTimestamp;
-    }
+  if (lastMsg && !lastMsg.author.bot) {
+    lastActivity = lastMsg.createdTimestamp;
+  }
 
-    console.log("[ChatRevive] Tracking started");
-  });
+  console.log("[ChatRevive] Tracking started");
+})();
+
 
   setInterval(async () => {
     if (reviveSent) return;
