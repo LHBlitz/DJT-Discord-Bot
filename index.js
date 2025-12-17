@@ -6,6 +6,7 @@ const { jomarResponses, harassment, randomMessages, epsteinMessages, statuses } 
 const AdminCore = require('./admincore');
 const startBirthdayJob = require('./jobs/birthdaycheck.js');
 const startChatReviveJob = require("./jobs/chatrevive");
+const startRedditFeedJob = require('./jobs/redditfeed.js');
 
 const NITTER_INSTANCE = "https://xcancel.com";
 
@@ -86,6 +87,7 @@ client.once(Events.ClientReady, readyClient => {
 
 	startBirthdayJob(readyClient);
 	startChatReviveJob(client);
+	startRedditFeedJob(client);
 
 	setInterval(() => {
 		if (Math.random() < currentChance) {
