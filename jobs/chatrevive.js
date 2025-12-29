@@ -6,10 +6,6 @@ const CHECK_INTERVAL_MINUTES = 5;
 const GENERAL_CHANNEL_ID = "1375295434997891183";
 
 const reviveMessages = [
-  "Where all the bitches at?",
-  "It's so quiet in here you could hear me blowing Bill.",
-  "Why's it so quiet? Is it because of black fatigue?",
-  "Man, it's silent here. We used to make more noise on Jeff's island.",
 ];
 
 module.exports = function startChatReviveJob(client) {
@@ -20,38 +16,51 @@ module.exports = function startChatReviveJob(client) {
     if (message.author.bot) return;
     if (message.channel.id !== GENERAL_CHANNEL_ID) return;
 
+    const time = new Date().toLocaleTimeString();
     lastActivity = Date.now();
-    reviveSent = false;
+
+    if (reviveSent) {
+      reviveSent = false;
+      console.log(`[ChatRevive] reviveSent reset due to activity at ${time}`);
+    }
+
+    console.log(`[ChatRevive] Activity detected at ${time} by ${message.author.tag}`);
   });
 
   async function checkInactivity() {
-    if (reviveSent) return;
-
     const now = Date.now();
     const inactiveFor = now - lastActivity;
+    const inactiveMinutes = Math.floor(inactiveFor / (60 * 1000));
     const threshold = INACTIVITY_HOURS * 60 * 60 * 1000;
+
+    console.log(`[ChatRevive] Channel has been quiet for ${inactiveMinutes} minute(s)`);
+
+    if (reviveSent) return;
 
     if (inactiveFor >= threshold) {
       const channel = await client.channels.fetch(GENERAL_CHANNEL_ID).catch(() => null);
-      if (!channel) return;
+      if (!channel || !channel.isTextBased()) return;
 
       const message = reviveMessages[Math.floor(Math.random() * reviveMessages.length)];
-      await channel.send(message);
+      await channel.send(message).catch(console.error);
       reviveSent = true;
+
+      console.log(`[ChatRevive] Sent revive message in #${channel.name}`);
     }
   }
 
   (async () => {
-  const channel = await client.channels.fetch(GENERAL_CHANNEL_ID).catch(() => null);
-  if (!channel || !channel.isTextBased()) return;
+    const channel = await client.channels.fetch(GENERAL_CHANNEL_ID).catch(() => null);
+    if (!channel || !channel.isTextBased()) return;
 
-  const messages = await channel.messages.fetch({ limit: 1 }).catch(() => null);
-  const lastMsg = messages?.first();
+    const messages = await channel.messages.fetch({ limit: 10 }).catch(() => null);
+    const lastMsg = messages?.filter(msg => !msg.author.bot).first();
+    if (lastMsg) lastActivity = lastMsg.createdTimestamp;
 
-  if (lastMsg && !lastMsg.author.bot) {
-    lastActivity = lastMsg.createdTimestamp;
-  }
+    console.log("[ChatRevive] Tracking started");
 
-  console.log("[ChatRevive] Tracking started");
-})();
+    await checkInactivity();
+
+    setInterval(checkInactivity, CHECK_INTERVAL_MINUTES * 60 * 1000);
+  })();
 };
