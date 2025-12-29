@@ -8,8 +8,6 @@ const startBirthdayJob = require('./jobs/birthdaycheck.js');
 const startChatReviveJob = require("./jobs/chatrevive");
 const startRedditFeedJob = require('./jobs/redditfeed.js');
 
-const NITTER_INSTANCE = "https://xcancel.com";
-
 const ROLE_CACHE = './rolecache.json';
 
 const MINORS_ROLE_ID = '1298143821753745458';
@@ -300,48 +298,32 @@ client.on('messageCreate', message => {
 });
 
 client.on("messageCreate", async (message) => {
-  if (message.author.bot) return;
+    const QUEST_CHANNEL_ID = "1435714003233013933";
+    const QUEST_ROLE_ID = "1435730932890992783";
 
-  const QUEST_CHANNEL_ID = "1435714003233013933";
-  const QUEST_ROLE_ID = "1435730932890992783";
-  const EXEMPT_ROLE_IDS = [
-    "1386905529724698644",
-    "1342306768524410931",
-  ];
+    if (message.channel.id !== QUEST_CHANNEL_ID) return;
 
-  const LOG_CHANNEL_ID = "1372343483842691093";
+    if (message.author.id === client.user.id) return;
 
-  if (message.channel.id !== QUEST_CHANNEL_ID) return;
+    const isFollowedMessage = message.webhookId || message.type === 19;
 
-  if (message.webhookId) {
-    await message.channel.send(`<@&${QUEST_ROLE_ID}>`);
-    console.log(`[Quest Ping] Sent ping for integration message in #${message.channel.name}.`);
-
-    if (LOG_CHANNEL_ID) {
-      const logChannel = await message.guild.channels.fetch(LOG_CHANNEL_ID);
-      if (logChannel) {
-        await logChannel.send(`Quest ping sent in <#${QUEST_CHANNEL_ID}>`);
-      }
+    if (!isFollowedMessage) {
+        console.log(`[Quest Ping] Ignored regular message by ${message.author.tag}`);
+        return;
     }
 
-    return;
-  }
-
-  const member = await message.guild.members.fetch(message.author.id);
-  const hasExemptRole = EXEMPT_ROLE_IDS.some(roleId => member.roles.cache.has(roleId));
-
-  if (hasExemptRole) {
-    console.log(`[Quest Ping] Skipped exempt user "${message.author.tag}" (${message.author.id}).`);
-    if (LOG_CHANNEL_ID) {
-      const logChannel = await message.guild.channels.fetch(LOG_CHANNEL_ID);
-      if (logChannel) {
-        await logChannel.send(`Skipped exempt user **${message.author.tag}** in <#${QUEST_CHANNEL_ID}>`);
-      }
+    const role = message.guild.roles.cache.get(QUEST_ROLE_ID);
+    if (!role) {
+        console.warn(`[Quest Ping] Role not found: ${QUEST_ROLE_ID}`);
+        return;
     }
-    return;
-  }
 
-  console.log(`[Quest Ping] Ignored regular user message by ${message.author.tag}.`);
+    await message.channel.send({
+        content: `<@&${QUEST_ROLE_ID}>`,
+        allowedMentions: { roles: [QUEST_ROLE_ID] },
+    });
+
+    console.log(`[Quest Ping] Sent @Quests ping for followed-channel message in #${message.channel.name}`);
 });
 
 const os = require("os");
