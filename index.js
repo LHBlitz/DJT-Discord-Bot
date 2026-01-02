@@ -10,8 +10,8 @@ const startRedditFeedJob = require('./jobs/redditfeed.js');
 
 const ROLE_CACHE = './rolecache.json';
 
-const MINORS_ROLE_ID = '1298143821753745458';
-const ADULT_ROLE_ID = '1234548930533130413';
+const MINORS_ROLE_ID = '';
+const ADULT_ROLE_ID = '';
 
 const baseChance = 0;
 const maxChance = 1;
@@ -123,8 +123,8 @@ client.once(Events.ClientReady, readyClient => {
 
 	require('./errorping')(
     	client,
-    	'692221013995552838',
-    	'1374873902437761086'
+    	'',
+    	''
 	);
 
 	require('./levelsystem')(client);
@@ -133,7 +133,7 @@ client.once(Events.ClientReady, readyClient => {
 
     require('./appolitics')(
     client,
-    '1382884586790326353',
+    '',
     [
         'https://www.pbs.org/newshour/feeds/rss/politics',
         'https://feeds.npr.org/1014/rss.xml',
@@ -254,32 +254,32 @@ client.on('messageCreate', message => {
 		currentChance = Math.min(currentChance + 0.0001, maxChance);
 	}
 
-	if (message.content.toLowerCase().includes('jomar')) {
+	if (message.content.toLowerCase().includes('')) {
 		message.channel.send(jomarResponses[Math.floor(Math.random() * jomarResponses.length)]);
 	}
 
-	if (message.content.toLowerCase().includes('epstein')) {
+	if (message.content.toLowerCase().includes('')) {
 		message.channel.send(epsteinMessages[Math.floor(Math.random() * epsteinMessages.length)]);
 	}
 
-    if (message.content.toLowerCase().includes('man')) {
+    if (message.content.toLowerCase().includes('')) {
 		if (Math.random() < 0.10) 
-			message.channel.send('https://cdn.discordapp.com/attachments/1372358713360388127/1425176744364609617/p9s1y1krwjtf1.gif');
+			message.channel.send('');
         }
 	
-    if (message.content.toLowerCase().includes('n word')) {
+    if (message.content.toLowerCase().includes('')) {
 		if (Math.random() < 0.25) 
-			message.channel.send('“We can’t let people throw around that word. I call it the n-word. There are two n-words, and you cant use either of them.”');
+			message.channel.send('');
         }
 
-	if (message.content.toLowerCase().includes('fag')) {
+	if (message.content.toLowerCase().includes('')) {
         if (Math.random() < 0.25) {
-            message.channel.send('https://cdn.discordapp.com/attachments/1148765358245806142/1255546535266095105/IMG_2981.jpg');
+            message.channel.send('');
         }
     }
 
-	if (message.author.id === '827174001049862164') { 
-		message.author.send('<@827174001049862164> ' + harassment[Math.floor(Math.random() * harassment.length)]).catch(console.error);
+	if (message.author.id === '') { 
+		message.author.send('<> ' + harassment[Math.floor(Math.random() * harassment.length)]).catch(console.error);
 	}
 
 	if (message.content.toLowerCase().includes('trump commands')) {
@@ -298,8 +298,8 @@ client.on('messageCreate', message => {
 });
 
 client.on("messageCreate", async (message) => {
-    const QUEST_CHANNEL_ID = "1435714003233013933";
-    const QUEST_ROLE_ID = "1435730932890992783";
+    const QUEST_CHANNEL_ID = "";
+    const QUEST_ROLE_ID = "";
 
     if (message.channel.id !== QUEST_CHANNEL_ID) return;
 
@@ -430,3 +430,4 @@ async function gracefulShutdown() {
 
     process.exit(0);
 }
+
