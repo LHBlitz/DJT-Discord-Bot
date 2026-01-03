@@ -1,151 +1,126 @@
-require("dotenv").config();
-const fs = require("fs");
-const path = require("path");
-const { TwitterApi } = require("twitter-api-v2");
-const Parser = require("rss-parser");
+require('dotenv').config();
+const fs = require('fs');
+const path = require('path');
+const { TwitterApi } = require('twitter-api-v2');
 
 const twitter = new TwitterApi(process.env.TWITTER_BEARER_TOKEN).v2;
-const rss = new Parser();
 
-const DATA_DIR = path.join(__dirname, "lastTweets");
+const DATA_DIR = path.join(__dirname, 'lastTweets');
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR);
 
-const USER_ID_FILE = path.join(DATA_DIR, "userIds.json");
-const MODE_FILE = path.join(DATA_DIR, "mode.json");
-
 const ACCOUNTS = [
-  { username: "DecisionDeskHQ", channelId: "1382884586790326353" },
-  { username: "realCrackWatch", channelId: "1148765788329758750" },
-  { username: "WumpusCentral", channelId: "1347316973943394315" },
-  { username: "Steam", channelId: "1148765788329758750" },
+  { username: 'DecisionDeskHQ', channelId: '' },
 ];
-
-const NITTERS = [
-  "https://nitter.net",
-  "https://nitter.privacydev.net",
-  "https://nitter.fdn.fr",
-];
-
-function loadJson(file, fallback) {
-  if (!fs.existsSync(file)) return fallback;
-  try {
-    return JSON.parse(fs.readFileSync(file, "utf8"));
-  } catch {
-    return fallback;
-  }
-}
-
-function saveJson(file, data) {
-  fs.writeFileSync(file, JSON.stringify(data, null, 2));
-}
 
 function lastTweetFile(username) {
   return path.join(DATA_DIR, `${username}.json`);
 }
 
 function getLastTweetId(username) {
-  return loadJson(lastTweetFile(username), {}).id || null;
+  const file = lastTweetFile(username);
+  if (!fs.existsSync(file)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(file, 'utf8')).id || null;
+  } catch {
+    return null;
+  }
 }
 
 function setLastTweetId(username, id) {
-  saveJson(lastTweetFile(username), { id });
+  fs.writeFileSync(lastTweetFile(username), JSON.stringify({ id }, null, 2));
 }
 
-let mode = loadJson(MODE_FILE, { mode: "API" }).mode;
+const blockedAccounts = {};
+const BLOCKED_FILE = path.join(DATA_DIR, 'blockedAccounts.json');
 
-function setMode(m) {
-  mode = m;
-  saveJson(MODE_FILE, { mode });
-  console.log(`[TwitterFeed] Mode switched to ${mode}`);
+function loadBlockedAccounts() {
+  if (!fs.existsSync(BLOCKED_FILE)) return {};
+  try {
+    return JSON.parse(fs.readFileSync(BLOCKED_FILE, 'utf8'));
+  } catch {
+    return {};
+  }
 }
 
-let userIds = loadJson(USER_ID_FILE, {});
-
-async function getUserId(username) {
-  if (userIds[username]) return userIds[username];
-
-  const user = await twitter.userByUsername(username);
-  if (!user?.data?.id) return null;
-
-  userIds[username] = user.data.id;
-  saveJson(USER_ID_FILE, userIds);
-  return user.data.id;
+function saveBlockedAccounts() {
+  fs.writeFileSync(BLOCKED_FILE, JSON.stringify(blockedAccounts, null, 2));
 }
 
-async function fetchViaApi(username) {
-  const userId = await getUserId(username);
-  if (!userId) return [];
+Object.assign(blockedAccounts, loadBlockedAccounts());
 
-  const sinceId = getLastTweetId(username);
+async function fetchTweets(username) {
+  const blockedUntil = blockedAccounts[username];
+  const now = Date.now();
+
+  if (blockedUntil && now < blockedUntil) {
+
+    return [];
+  } else if (blockedUntil && now >= blockedUntil) {
+
+    delete blockedAccounts[username];
+    saveBlockedAccounts();
+    console.log(`[TwitterFeed] @${username} unblocked, resuming fetch.`);
+  }
 
   try {
-    const res = await twitter.userTimeline(userId, {
-      since_id: sinceId || undefined,
+    const user = await twitter.userByUsername(username);
+    if (!user?.data?.id) return [];
+
+    const sinceId = getLastTweetId(username) || undefined;
+    const res = await twitter.userTimeline(user.data.id, {
+      since_id: sinceId,
       max_results: 5,
-      exclude: "replies",
+      exclude: 'replies',
     });
 
     return res?.data?.data || [];
   } catch (err) {
-    if (err.code === 429) {
-      setMode("NITTER");
+    if (err?.data?.title === 'UsageCapExceeded') {
+      console.warn(`[TwitterFeed] @${username} hit the monthly API limit. Blocking until next reset.`);
+
+      const now = new Date();
+      let reset = new Date(now.getFullYear(), now.getMonth(), 7, 0, 0, 0);
+      if (now.getDate() >= 7) reset.setMonth(reset.getMonth() + 1);
+
+      blockedAccounts[username] = reset.getTime();
+      saveBlockedAccounts();
       return [];
     }
-    throw err;
+    console.error(`[TwitterFeed] Error fetching @${username}:`, err);
+    return [];
   }
-}
-
-function extractTweetId(url) {
-  return url.split("/status/")[1];
-}
-
-async function fetchViaNitter(username) {
-  for (const base of NITTERS) {
-    try {
-      const feed = await rss.parseURL(`${base}/${username}/rss`);
-      return feed.items || [];
-    } catch {}
-  }
-  return [];
 }
 
 async function processAccount(discordClient, account) {
   const { username, channelId } = account;
   const lastId = getLastTweetId(username);
-  let tweets = [];
 
-  if (mode === "API") {
-    tweets = await fetchViaApi(username);
-  } else {
-    const items = await fetchViaNitter(username);
-    tweets = items
-      .map(i => ({ id: extractTweetId(i.link) }))
-      .filter(t => t.id && t.id !== lastId);
-  }
+  const tweets = await fetchTweets(username);
 
-  if (!tweets.length) return;
+  const newTweets = tweets
+    .filter(t => t.id && t.id !== lastId)
+    .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
 
-  const channel = await discordClient.channels.fetch(channelId);
+  if (!newTweets.length) return;
 
-  for (const tweet of tweets.reverse()) {
+  const channel = await discordClient.channels.fetch(channelId).catch(() => null);
+  if (!channel?.isTextBased()) return;
+
+  for (const tweet of newTweets) {
     const url = `https://fxtwitter.com/${username}/status/${tweet.id}`;
-    await channel.send(url);
+    await channel.send(url).catch(console.error);
     setLastTweetId(username, tweet.id);
     console.log(`[TwitterFeed] Posted @${username}: ${url}`);
   }
 }
 
 async function loop(discordClient) {
-  console.log("[TwitterFeed] Started");
+  console.log('[TwitterFeed] Started');
 
   while (true) {
     for (const account of ACCOUNTS) {
-      try {
-        await processAccount(discordClient, account);
-        await new Promise(r => setTimeout(r, 2000));
-      } catch (e) {
-        console.error("[TwitterFeed] Error:", e);
-      }
+      await processAccount(discordClient, account);
+      await new Promise(r => setTimeout(r, 2000));
     }
 
     await new Promise(r => setTimeout(r, 5 * 60 * 1000));
