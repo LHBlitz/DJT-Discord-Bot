@@ -3,7 +3,7 @@ const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('disc
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('deport')
-        .setDescription('Deports a HISPANIC from this server.')
+        .setDescription('')
         .setDefaultMemberPermissions(PermissionFlagsBits.KickMembers)
         .addUserOption(option =>
             option.setName('target')
@@ -60,3 +60,4 @@ module.exports = {
         }
     },
 };
+

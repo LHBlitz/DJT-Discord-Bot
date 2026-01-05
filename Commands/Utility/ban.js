@@ -7,7 +7,7 @@ module.exports = {
 		.setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
 		.addUserOption(option =>
 			option.setName('target')
-				.setDescription('The Terrorist to exterminate')
+				.setDescription('')
 				.setRequired(true))
 		.addStringOption(option =>
 			option.setName('reason')
@@ -24,7 +24,7 @@ module.exports = {
 		}
 
 		if (!member.bannable) {
-			return interaction.reply({ content: 'This person is from Israel. I cannot EXTERMINATE them using the WILL of GOD. Choose someone who isnt Jewsish please.', flags: MessageFlags.Ephemeral });
+			return interaction.reply({ content: '', flags: MessageFlags.Ephemeral });
 		}
 
 		try {
@@ -37,3 +37,4 @@ module.exports = {
 		}
 	},
 };
+

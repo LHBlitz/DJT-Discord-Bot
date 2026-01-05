@@ -5,6 +5,7 @@ module.exports = {
 		.setName('jomar')
 		.setDescription('Remind him that he is not supposed to be in this country'),
 	async execute(interaction) {
-		await interaction.reply('<@827174001049862164>, get out of my COUNTRY!!! You do not have LEGAL CITIZENSHIP! That green card doesnt mean shit when youre a fucking mex!');
+		await interaction.reply('');
 	},
 };
+

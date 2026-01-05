@@ -5,13 +5,13 @@ const { token } = require('./config.json');
 const { jomarResponses, harassment, randomMessages, epsteinMessages, statuses } = require('./responses.js');
 const AdminCore = require('./admincore');
 const startBirthdayJob = require('./jobs/birthdaycheck.js');
-
-const NITTER_INSTANCE = "https://xcancel.com";
+const startChatReviveJob = require("./jobs/chatrevive");
+const startRedditFeedJob = require('./jobs/redditfeed.js');
 
 const ROLE_CACHE = './rolecache.json';
 
-const MINORS_ROLE_ID = '1298143821753745458';
-const ADULT_ROLE_ID = '1234548930533130413';
+const MINORS_ROLE_ID = '';
+const ADULT_ROLE_ID = '';
 
 const baseChance = 0;
 const maxChance = 1;
@@ -84,6 +84,8 @@ client.once(Events.ClientReady, readyClient => {
 	AdminCore.startAutoBackup(levelsPath, 60);
 
 	startBirthdayJob(readyClient);
+	startChatReviveJob(client);
+	startRedditFeedJob(client);
 
 	setInterval(() => {
 		if (Math.random() < currentChance) {
@@ -121,8 +123,8 @@ client.once(Events.ClientReady, readyClient => {
 
 	require('./errorping')(
     	client,
-    	'692221013995552838',
-    	'1374873902437761086'
+    	'',
+    	''
 	);
 
 	require('./levelsystem')(client);
@@ -131,7 +133,7 @@ client.once(Events.ClientReady, readyClient => {
 
     require('./appolitics')(
     client,
-    '1382884586790326353',
+    '',
     [
         'https://www.pbs.org/newshour/feeds/rss/politics',
         'https://feeds.npr.org/1014/rss.xml',
@@ -252,32 +254,32 @@ client.on('messageCreate', message => {
 		currentChance = Math.min(currentChance + 0.0001, maxChance);
 	}
 
-	if (message.content.toLowerCase().includes('jomar')) {
+	if (message.content.toLowerCase().includes('')) {
 		message.channel.send(jomarResponses[Math.floor(Math.random() * jomarResponses.length)]);
 	}
 
-	if (message.content.toLowerCase().includes('epstein')) {
+	if (message.content.toLowerCase().includes('')) {
 		message.channel.send(epsteinMessages[Math.floor(Math.random() * epsteinMessages.length)]);
 	}
 
-    if (message.content.toLowerCase().includes('man')) {
+    if (message.content.toLowerCase().includes('')) {
 		if (Math.random() < 0.10) 
-			message.channel.send('https://cdn.discordapp.com/attachments/1372358713360388127/1425176744364609617/p9s1y1krwjtf1.gif');
+			message.channel.send('');
         }
 	
-    if (message.content.toLowerCase().includes('n word')) {
+    if (message.content.toLowerCase().includes('')) {
 		if (Math.random() < 0.25) 
-			message.channel.send('“We can’t let people throw around that word. I call it the n-word. There are two n-words, and you cant use either of them.”');
+			message.channel.send('');
         }
 
-	if (message.content.toLowerCase().includes('fag')) {
+	if (message.content.toLowerCase().includes('')) {
         if (Math.random() < 0.25) {
-            message.channel.send('https://cdn.discordapp.com/attachments/1148765358245806142/1255546535266095105/IMG_2981.jpg');
+            message.channel.send('');
         }
     }
 
-	if (message.author.id === '827174001049862164') { 
-		message.author.send('<@827174001049862164> ' + harassment[Math.floor(Math.random() * harassment.length)]).catch(console.error);
+	if (message.author.id === '') { 
+		message.author.send('<> ' + harassment[Math.floor(Math.random() * harassment.length)]).catch(console.error);
 	}
 
 	if (message.content.toLowerCase().includes('trump commands')) {
@@ -296,48 +298,32 @@ client.on('messageCreate', message => {
 });
 
 client.on("messageCreate", async (message) => {
-  if (message.author.bot) return;
+    const QUEST_CHANNEL_ID = "";
+    const QUEST_ROLE_ID = "";
 
-  const QUEST_CHANNEL_ID = "1435714003233013933";
-  const QUEST_ROLE_ID = "1435730932890992783";
-  const EXEMPT_ROLE_IDS = [
-    "1386905529724698644",
-    "1342306768524410931",
-  ];
+    if (message.channel.id !== QUEST_CHANNEL_ID) return;
 
-  const LOG_CHANNEL_ID = "1372343483842691093";
+    if (message.author.id === client.user.id) return;
 
-  if (message.channel.id !== QUEST_CHANNEL_ID) return;
+    const isFollowedMessage = message.webhookId || message.type === 19;
 
-  if (message.webhookId) {
-    await message.channel.send(`<@&${QUEST_ROLE_ID}>`);
-    console.log(`[Quest Ping] Sent ping for integration message in #${message.channel.name}.`);
-
-    if (LOG_CHANNEL_ID) {
-      const logChannel = await message.guild.channels.fetch(LOG_CHANNEL_ID);
-      if (logChannel) {
-        await logChannel.send(`Quest ping sent in <#${QUEST_CHANNEL_ID}>`);
-      }
+    if (!isFollowedMessage) {
+        console.log(`[Quest Ping] Ignored regular message by ${message.author.tag}`);
+        return;
     }
 
-    return;
-  }
-
-  const member = await message.guild.members.fetch(message.author.id);
-  const hasExemptRole = EXEMPT_ROLE_IDS.some(roleId => member.roles.cache.has(roleId));
-
-  if (hasExemptRole) {
-    console.log(`[Quest Ping] Skipped exempt user "${message.author.tag}" (${message.author.id}).`);
-    if (LOG_CHANNEL_ID) {
-      const logChannel = await message.guild.channels.fetch(LOG_CHANNEL_ID);
-      if (logChannel) {
-        await logChannel.send(`Skipped exempt user **${message.author.tag}** in <#${QUEST_CHANNEL_ID}>`);
-      }
+    const role = message.guild.roles.cache.get(QUEST_ROLE_ID);
+    if (!role) {
+        console.warn(`[Quest Ping] Role not found: ${QUEST_ROLE_ID}`);
+        return;
     }
-    return;
-  }
 
-  console.log(`[Quest Ping] Ignored regular user message by ${message.author.tag}.`);
+    await message.channel.send({
+        content: `<@&${QUEST_ROLE_ID}>`,
+        allowedMentions: { roles: [QUEST_ROLE_ID] },
+    });
+
+    console.log(`[Quest Ping] Sent @Quests ping for followed-channel message in #${message.channel.name}`);
 });
 
 const os = require("os");
@@ -444,3 +430,4 @@ async function gracefulShutdown() {
 
     process.exit(0);
 }
+

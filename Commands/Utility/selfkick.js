@@ -8,7 +8,7 @@ module.exports = {
 		const member = interaction.member;
 
 		if (!member.kickable) {
-			return interaction.reply({ content: 'What? Why would want to do this? Donny wants to keep the whites in this country...', flags: MessageFlags.Ephemeral });
+			return interaction.reply({ content: '', flags: MessageFlags.Ephemeral });
 		}
 
 		try {
@@ -19,11 +19,12 @@ module.exports = {
 		}
 
 		try {
-			await interaction.reply({ content: `GET THE FUCK OUT OF MY COUNTRY ${interaction.user.tag}     FAGGOT` });
+			await interaction.reply({ content: `${interaction.user.tag}` });
 			await member.kick();
 		}
 		catch {
-			await interaction.followUp({ content: 'I COULDNT DEPORT YOU NIGGA', flags: MessageFlags.Ephemeral });
+			await interaction.followUp({ content: '', flags: MessageFlags.Ephemeral });
 		}
 	},
+
 };
