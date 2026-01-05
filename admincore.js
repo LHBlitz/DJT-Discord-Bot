@@ -4,8 +4,8 @@ const { EmbedBuilder } = require('discord.js');
 
 const LOGS_DIR = path.join(__dirname, 'logs');
 const BACKUP_DIR = path.join(__dirname, 'backups');
-const ALERT_CHANNEL_ID = '1372343483842691093';
-const ADMIN_ROLE_ID = '1342306768524410931';
+const ALERT_CHANNEL_ID = '';
+const ADMIN_ROLE_ID = '';
 
 if (!fs.existsSync(LOGS_DIR)) fs.mkdirSync(LOGS_DIR);
 if (!fs.existsSync(BACKUP_DIR)) fs.mkdirSync(BACKUP_DIR);
@@ -60,3 +60,4 @@ const AdminCore = {
 };
 
 module.exports = AdminCore;
+
