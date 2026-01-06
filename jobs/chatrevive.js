@@ -3,7 +3,7 @@ console.log("[ChatRevive] File loaded");
 const INACTIVITY_HOURS = 3;
 const CHECK_INTERVAL_MINUTES = 5;
 
-const GENERAL_CHANNEL_ID = "1375295434997891183";
+const GENERAL_CHANNEL_ID = "";
 
 const reviveMessages = [
 ];
@@ -64,4 +64,5 @@ module.exports = function startChatReviveJob(client) {
     setInterval(checkInactivity, CHECK_INTERVAL_MINUTES * 60 * 1000);
   })();
 };
+
 
