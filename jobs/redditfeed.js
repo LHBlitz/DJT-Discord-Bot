@@ -10,7 +10,7 @@ const parser = new Parser({
   }
 });
 
-const SUBREDDIT = 'CrackWatch';
+const SUBREDDIT = '';
 const CHANNEL_ID = '';
 const CHECK_INTERVAL_MINUTES = 5;
 
@@ -74,7 +74,13 @@ module.exports = function startRedditFeedJob(client) {
           .setTitle(post.title)
           .setColor('#FF4500')
           .setThumbnail(SUBREDDIT_ICON)
-          .setDescription(post.contentSnippet || '')
+          .setDescription(
+            post['content:encoded']
+            ?.replace(/<br\s*\/?>/gi, '\n')
+            .replace(/<\/?p>/gi, '')
+            .replace(/submitted by.*$/is, '')
+            .trim() || ''
+          )
           .setURL(post.link)
           .setTimestamp(post.date);
 
