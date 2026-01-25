@@ -9,7 +9,7 @@ module.exports = function startBirthdayJob(client) {
     for (const guild of client.guilds.cache.values()) {
       const birthdays = getBirthdaysForGuild(guild.id);
 
-      const announcementChannel = guild.channels.cache.get("1375293339615891549");
+      const announcementChannel = guild.channels.cache.get("");
       if (!announcementChannel) continue;
 
       const birthdayRole = guild.roles.cache.find(r => r.name === "Birthday");

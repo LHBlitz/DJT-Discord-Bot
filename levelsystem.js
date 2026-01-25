@@ -22,7 +22,7 @@ function getXPNeeded(level) {
 }
 
 const BOOSTED_USERS = [
-  '827174001049862164',
+  '',
 ];
 const XP_MULTIPLIER = -999; 
 
@@ -110,3 +110,4 @@ module.exports = (client) => {
     fs.writeFileSync(filePath, JSON.stringify(levels, null, 2));
   });
 };
+
